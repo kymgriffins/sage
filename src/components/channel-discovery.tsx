@@ -98,24 +98,49 @@ export function ChannelDiscovery() {
 
     setLoading(true);
 
-    // Simulate API call delay
-    setTimeout(() => {
-      const results = mockChannels
-        .filter(channel =>
-          channel.snippet.title.toLowerCase().includes(query.toLowerCase()) ||
-          channel.snippet.description.toLowerCase().includes(query.toLowerCase())
-        )
-        .map(channel => ({
-          ...channel,
-          isSubscribed: userSubscriptions.has(channel.snippet.channelId),
-          isFavorite: false,
-          relevanceScore: Math.random() * 100
-        }))
-        .sort((a, b) => b.relevanceScore - a.relevanceScore);
+    try {
+      // Call real YouTube API through our backend
+      const response = await fetch(`/api/channels/search?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Search failed:', data.error);
+        setSearchResults([]);
+        return;
+      }
+
+      // Transform API response to match our component interface
+      const results = data.data.map((channel: any) => ({
+        id: channel.id,
+        snippet: {
+          channelId: channel.snippet.channelId,
+          title: channel.snippet.title,
+          description: channel.snippet.description,
+          thumbnails: channel.snippet.thumbnails,
+          customUrl: channel.snippet.customUrl
+        },
+        statistics: {
+          subscriberCount: channel.statistics.subscriberCount,
+          videoCount: channel.statistics.videoCount,
+          viewCount: channel.statistics.viewCount
+        },
+        isSubscribed: userSubscriptions.has(channel.snippet.channelId),
+        isFavorite: false,
+        relevanceScore: channel.relevanceScore || 0,
+        // Add additional fields that might be useful for UI
+        searchMeta: {
+          isPoweredByYouTube: data.meta.poweredByYouTube,
+          totalResults: data.meta.totalResults
+        }
+      }));
 
       setSearchResults(results);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   const toggleSubscription = async (channelId: string) => {
