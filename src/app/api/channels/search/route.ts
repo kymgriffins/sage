@@ -127,7 +127,19 @@ function filterAndScoreChannels(channels: any[], query: string): any[] {
       ...channel,
       relevanceScore: calculateTradingRelevance(channel, query)
     }))
-    .sort((a, b) => b.relevanceScore - a.relevanceScore)
+    .sort((a, b) => {
+      // Sort by subscriber count descending (most subscribers first)
+      const subscribersA = parseInt(a.statistics?.subscriberCount || '0');
+      const subscribersB = parseInt(b.statistics?.subscriberCount || '0');
+
+      // If subscriber counts are different, sort by subscribers
+      if (subscribersA !== subscribersB) {
+        return subscribersB - subscribersA; // Higher subscribers first
+      }
+
+      // If subscriber counts are the same, use relevance score as tiebreaker
+      return b.relevanceScore - a.relevanceScore;
+    })
     .slice(0, 10); // Top 10 results
 }
 
