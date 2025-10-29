@@ -49,8 +49,8 @@
  * - Professional code organization and commenting
  */
 
-import Link from 'next/link'
 import { ThemeToggle } from '@/components/theme-toggle'
+import Link from 'next/link'
 
 export default function Home() {
   return (
@@ -231,80 +231,176 @@ export default function Home() {
           </div>
         </div>
 
-        {/* How It Works */}
-        <div className="py-20">
-          <div className="max-w-6xl mx-auto text-center">
-            <h2 className="text-3xl lg:text-4xl font-black text-foreground dark:text-white mb-12">
-              How SAGE Works
-            </h2>
+        {/* How It Works - 2025 Animated Carousel */}
+        <div className="py-32 relative overflow-hidden">
+          {/* Animated background elements */}
+          <div className="absolute inset-0">
+            <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+            <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-purple-400 rounded-full animate-pulse delay-300"></div>
+            <div className="absolute top-1/2 left-1/3 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse delay-700"></div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              {[
-                {
-                  step: "1",
-                  title: "Upload Stream",
-                  desc: "Paste a trading video URL or upload a file",
-                  icon: (
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                    </svg>
-                  )
-                },
-                {
-                  step: "2",
-                  title: "AI Processing",
-                  desc: "Advanced transcription and trade detection algorithms analyze the content",
-                  icon: (
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  )
-                },
-                {
-                  step: "3",
-                  title: "Extract Insights",
-                  desc: "Get trade signals, performance metrics, and strategy analysis",
-                  icon: (
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 19V9a2 2 0 012-2h2a2 2 0 012 2v6a2 2 0 01-2 2h-2M9 19V9a2 2 0 012-2h2a2 2 0 012 2v6a2 2 0 01-2 2h-2" />
-                    </svg>
-                  )
-                },
-                {
-                  step: "4",
-                  title: "Review Results",
-                  desc: "Download detailed analysis reports with visual charts and insights",
-                  icon: (
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                    </svg>
-                  )
-                }
-              ].map((item, index) => (
-                <div key={index} className="text-center">
-                  <div className="relative">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-xl mb-4">
-                      {item.icon}
-                    </div>
-                    {index < 3 && (
-                      <div className="hidden md:block absolute top-8 left-full w-8 h-0.5 bg-cyan-400/30"></div>
-                    )}
+          <div className="max-w-7xl mx-auto text-center relative z-10">
+            {/* Section Header */}
+            <div className="mb-20">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-6">
+                <div className="w-2 h-2 bg-cyan-400 rounded-full mr-2 animate-pulse" />
+                <span className="text-sm text-cyan-300">PROCESS FLOW</span>
+              </div>
+              <h2 className="text-5xl lg:text-7xl font-black text-foreground dark:text-white mb-6">
+                How <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">SAGE</span> Works
+              </h2>
+              <p className="text-xl text-muted-foreground dark:text-white/60 max-w-2xl mx-auto">
+                From stream to insights in seconds - watch the magic happen
+              </p>
+            </div>
+
+            {/* Animated Carousel */}
+            <div className="relative">
+              {/* Progress Bar */}
+              <div className="flex justify-center mb-16">
+                <div className="relative w-full max-w-2xl">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full h-0.5 bg-white/10 rounded-full"></div>
                   </div>
-
-                  <div className="bg-gray-900 rounded-full w-8 h-8 flex items-center justify-center text-white font-bold text-sm mx-auto mb-3">
-                    {item.step}
+                  <div className="relative flex justify-between">
+                    {[1, 2, 3, 4].map((step) => (
+                      <div key={step} className="relative">
+                        <div className="w-4 h-4 bg-white/20 rounded-full transition-all duration-500 hover:scale-125 hover:bg-cyan-400 cursor-pointer group">
+                          <div className="absolute inset-0 bg-cyan-400 rounded-full scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+                        </div>
+                        <div className="absolute top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm text-white/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          Step {step}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-
-                  <h3 className="text-foreground dark:text-white font-semibold mb-2">
-                    {item.title}
-                  </h3>
-
-                  <p className="text-muted-foreground dark:text-white/60 text-sm max-w-xs mx-auto">
-                    {item.desc}
-                  </p>
                 </div>
-              ))}
+              </div>
+
+              {/* Carousel Container */}
+              <div className="relative h-96">
+                {/* Animated Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                  {[
+                    {
+                      step: "01",
+                      title: "Upload Stream",
+                      desc: "Paste any YouTube trading stream URL or upload video files",
+                      icon: "🎥",
+                      gradient: "from-cyan-500 to-blue-500",
+                      features: ["YouTube Integration", "Direct Upload", "Batch Processing"]
+                    },
+                    {
+                      step: "02",
+                      title: "AI Processing",
+                      desc: "Advanced neural networks transcribe and analyze trading patterns in real-time",
+                      icon: "🧠",
+                      gradient: "from-purple-500 to-pink-500",
+                      features: ["Real-time Analysis", "Pattern Recognition", "Confidence Scoring"]
+                    },
+                    {
+                      step: "03",
+                      title: "Extract Insights",
+                      desc: "Get precise trade signals, performance metrics, and strategy breakdowns",
+                      icon: "💎",
+                      gradient: "from-blue-500 to-cyan-500",
+                      features: ["Trade Detection", "Risk Analysis", "Performance Metrics"]
+                    },
+                    {
+                      step: "04",
+                      title: "Review Results",
+                      desc: "Interactive dashboards with visual analytics and export capabilities",
+                      icon: "📊",
+                      gradient: "from-green-500 to-emerald-500",
+                      features: ["Live Dashboard", "Export Reports", "API Access"]
+                    }
+                  ].map((item, index) => (
+                    <div
+                      key={index}
+                      className="group relative cursor-pointer"
+                    >
+                      {/* Animated Card */}
+                      <div className="relative h-full bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 rounded-3xl p-8 backdrop-blur-sm hover:bg-white/10 dark:hover:bg-white/10 transition-all duration-700 hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/10 overflow-hidden">
+
+                        {/* Animated Background Gradient */}
+                        <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500 rounded-3xl`}></div>
+
+                        {/* Floating Icon */}
+                        <div className="relative mb-6">
+                          <div className="text-4xl mb-2 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
+                            {item.icon}
+                          </div>
+                          <div className="text-cyan-400 text-sm font-mono tracking-wider">
+                            {item.step}
+                          </div>
+                        </div>
+
+                        {/* Content */}
+                        <h3 className="text-foreground dark:text-white text-xl font-bold mb-4 group-hover:text-white dark:group-hover:text-white transition-colors duration-300">
+                          {item.title}
+                        </h3>
+
+                        <p className="text-muted-foreground dark:text-white/60 text-sm leading-relaxed mb-6 group-hover:text-white/80 dark:group-hover:text-white/80 transition-colors duration-300">
+                          {item.desc}
+                        </p>
+
+                        {/* Features List */}
+                        <div className="space-y-2">
+                          {item.features.map((feature, featureIndex) => (
+                            <div
+                              key={featureIndex}
+                              className="flex items-center text-xs text-cyan-400/80 group-hover:text-cyan-300 transition-colors duration-300"
+                            >
+                              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full mr-2 group-hover:scale-150 transition-transform duration-300"></div>
+                              {feature}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Animated Border */}
+                        <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${item.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10`}>
+                          <div className="absolute inset-[1px] rounded-3xl bg-slate-950"></div>
+                        </div>
+
+                        {/* Hover Pulse Effect */}
+                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 -translate-x-full group-hover:translate-x-full"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Navigation Arrows */}
+                <button className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all duration-300 hover:scale-110 backdrop-blur-sm">
+                  ←
+                </button>
+                <button className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all duration-300 hover:scale-110 backdrop-blur-sm">
+                  →
+                </button>
+              </div>
+
+              {/* Carousel Indicators */}
+              <div className="flex justify-center mt-12 space-x-3">
+                {[0, 1, 2, 3].map((dot) => (
+                  <button
+                    key={dot}
+                    className="w-3 h-3 bg-white/20 rounded-full transition-all duration-300 hover:bg-cyan-400 hover:scale-125"
+                  ></button>
+                ))}
+              </div>
+            </div>
+
+            {/* CTA below carousel */}
+            <div className="mt-20">
+              <Link
+                href="/get-started"
+                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-2xl font-semibold text-lg shadow-2xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-500 hover:scale-105"
+              >
+                🚀 Start Your Analysis Journey
+                <svg className="w-5 h-5 ml-3 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
             </div>
           </div>
         </div>
