@@ -50,6 +50,7 @@
  */
 
 import { ThemeToggle } from '@/components/theme-toggle'
+import { AuthButton } from '@/components/auth-button'
 import Link from 'next/link'
 
 export default function Home() {
@@ -80,6 +81,7 @@ export default function Home() {
               <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
                 Pricing →
               </Link>
+              <AuthButton />
               <ThemeToggle />
             </div>
           </div>
