@@ -6,6 +6,7 @@ import { StructuredData } from "@/components/structured-data";
 import ErrorBoundary from "@/components/error-boundary";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Navigation } from "@/components/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -121,12 +122,15 @@ export default function RootLayout({
         >
           <StackProvider app={stackClientApp}>
             <StackTheme>
-              <ErrorBoundary>
-                {children}
-              </ErrorBoundary>
+              <Navigation />
+              <div className="pt-16"> {/* Account for fixed navigation height */}
+                <ErrorBoundary>
+                  {children}
+                </ErrorBoundary>
 
-              {/* Structured Data for SEO */}
-              <StructuredData type="software" />
+                {/* Structured Data for SEO */}
+                <StructuredData type="software" />
+              </div>
             </StackTheme>
           </StackProvider>
         </ThemeProvider>
