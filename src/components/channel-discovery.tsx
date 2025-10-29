@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 
 interface YouTubeChannel {
   id: string;
@@ -34,6 +35,7 @@ interface ChannelSearchResult extends YouTubeChannel {
 
 export function ChannelDiscovery() {
   const { user, isSignedIn } = useAuth();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ChannelSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -96,9 +98,32 @@ export function ChannelDiscovery() {
   ];
 
   const searchChannels = async (query: string) => {
-    if (!query.trim()) return;
+    if (!query.trim()) {
+      toast({
+        title: "Search query required",
+        description: "Please enter a search term to find trading channels",
+        variant: "warning"
+      });
+      return;
+    }
+
+    if (query.trim().length < 2) {
+      toast({
+        title: "Search too short",
+        description: "Please enter at least 2 characters for search",
+        variant: "warning"
+      });
+      return;
+    }
 
     setLoading(true);
+
+    // Show loading notification
+    toast({
+      title: "Searching...",
+      description: `Looking for trading channels matching "${query}"`,
+      variant: "info"
+    });
 
     try {
       // Determine mode parameter based on search mode
@@ -115,6 +140,28 @@ export function ChannelDiscovery() {
 
       if (!response.ok) {
         console.error('Search failed:', data.error);
+
+        // Handle specific error types
+        if (data.details && data.details.includes('YouTube API key')) {
+          toast({
+            title: "YouTube API not configured",
+            description: "Configure YOUTUBE_API_KEY in your environment variables or switch to Mock mode",
+            variant: "destructive"
+          });
+        } else if (data.error === 'Search query is required') {
+          toast({
+            title: "Search query required",
+            description: "Please enter a search term",
+            variant: "warning"
+          });
+        } else {
+          toast({
+            title: "Search failed",
+            description: data.error || "Unable to search channels. Please try again.",
+            variant: "destructive"
+          });
+        }
+
         setSearchResults([]);
         return;
       }
@@ -145,8 +192,34 @@ export function ChannelDiscovery() {
       }));
 
       setSearchResults(results);
+
+      // Success notification
+      if (results.length > 0) {
+        const modeText = searchMode === 'mock' ? 'demo' : searchMode === 'api' ? 'YouTube API' : 'auto';
+        toast({
+          title: "Search successful!",
+          description: `Found ${results.length} trading channel${results.length === 1 ? '' : 's'} using ${modeText} mode`,
+          variant: "success"
+        });
+      } else {
+        toast({
+          title: "No results found",
+          description: `Try different keywords or search for popular traders like "Peter Brandt" or "ICT Mentor"`,
+          variant: "warning"
+        });
+      }
+
     } catch (error) {
       console.error('Search error:', error);
+
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+
+      toast({
+        title: "Network error",
+        description: "Unable to connect to search service. Please check your internet connection.",
+        variant: "destructive"
+      });
+
       setSearchResults([]);
     } finally {
       setLoading(false);
@@ -154,27 +227,88 @@ export function ChannelDiscovery() {
   };
 
   const toggleSubscription = async (channelId: string) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "You must be signed in to follow channels",
+        variant: "warning"
+      });
+      return;
+    }
 
-    // Simulate API call
-    setUserSubscriptions(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(channelId)) {
-        newSet.delete(channelId);
-      } else {
-        newSet.add(channelId);
-      }
-      return newSet;
+    // Check if we're trying to follow a channel
+    const currentlySubscribed = userSubscriptions.has(channelId);
+    const channelName = searchResults.find(ch => ch.snippet.channelId === channelId)?.snippet.title || 'Unknown Channel';
+
+    try {
+      // Show loading state notification
+      toast({
+        title: currentlySubscribed ? "Unfollowing..." : "Following...",
+        description: `${currentlySubscribed ? 'Removing' : 'Adding'} ${channelName}`,
+        variant: "info"
+      });
+
+      // TODO: Replace with real API call when backend is ready
+      // Simulate API delay for realistic feedback
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Simulate API call (would be replaced with real API in production)
+      setUserSubscriptions(prev => {
+        const newSet = new Set(prev);
+        if (currentlySubscribed) {
+          newSet.delete(channelId);
+        } else {
+          newSet.add(channelId);
+        }
+        return newSet;
+      });
+
+      // Update search results to reflect the change
+      setSearchResults(prev =>
+        prev.map(result =>
+          result.snippet.channelId === channelId
+            ? { ...result, isSubscribed: !currentlySubscribed }
+            : result
+        )
+      );
+
+      // Success notification
+      toast({
+        title: currentlySubscribed ? "Channel unfollowed" : "Channel followed!",
+        description: `${channelName} ${currentlySubscribed ? 'removed from' : 'added to'} your tracked channels`,
+        variant: "success"
+      });
+
+    } catch (error) {
+      console.error('Subscription error:', error);
+
+      toast({
+        title: "Subscription failed",
+        description: `Unable to ${currentlySubscribed ? 'unfollow' : 'follow'} ${channelName}. Please try again.`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSearchModeChange = (newMode: 'auto' | 'mock' | 'api') => {
+    setSearchMode(newMode);
+
+    // Show confirmation of mode change
+    const modeDescriptions = {
+      auto: "Automatically uses YouTube API if available, falls back to mock data",
+      mock: "Always uses demo/mock data without calling YouTube API",
+      api: "Forces use of YouTube API (will fail if not configured)"
+    };
+
+    toast({
+      title: "Search mode changed",
+      description: modeDescriptions[newMode],
+      variant: "info"
     });
 
-    // Update search results
-    setSearchResults(prev =>
-      prev.map(result =>
-        result.snippet.channelId === channelId
-          ? { ...result, isSubscribed: !result.isSubscribed }
-          : result
-      )
-    );
+    // Clear previous search results when mode changes
+    setSearchResults([]);
+    setSearchQuery("");
   };
 
   const formatCount = (count: string) => {
@@ -209,7 +343,7 @@ export function ChannelDiscovery() {
                 id="auto-mode"
                 name="search-mode"
                 checked={searchMode === 'auto'}
-                onChange={() => setSearchMode('auto')}
+                onChange={() => handleSearchModeChange('auto')}
                 className="w-4 h-4"
               />
               <label htmlFor="auto-mode" className="text-sm font-medium">
@@ -225,7 +359,7 @@ export function ChannelDiscovery() {
                 id="mock-mode"
                 name="search-mode"
                 checked={searchMode === 'mock'}
-                onChange={() => setSearchMode('mock')}
+                onChange={() => handleSearchModeChange('mock')}
                 className="w-4 h-4"
               />
               <label htmlFor="mock-mode" className="text-sm font-medium">
@@ -241,7 +375,7 @@ export function ChannelDiscovery() {
                 id="api-mode"
                 name="search-mode"
                 checked={searchMode === 'api'}
-                onChange={() => setSearchMode('api')}
+                onChange={() => handleSearchModeChange('api')}
                 className="w-4 h-4"
               />
               <label htmlFor="api-mode" className="text-sm font-medium">

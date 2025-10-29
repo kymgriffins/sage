@@ -4,6 +4,7 @@ import { stackClientApp } from "../stack/client";
 import { ThemeProvider } from "@/components/theme-provider";
 import { StructuredData } from "@/components/structured-data";
 import ErrorBoundary from "@/components/error-boundary";
+import { Toaster } from "@/components/ui/toaster";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/navigation";
@@ -130,6 +131,9 @@ export default function RootLayout({
 
                 {/* Structured Data for SEO */}
                 <StructuredData type="software" />
+
+                {/* Toast Notifications */}
+                <Toaster />
               </div>
             </StackTheme>
           </StackProvider>
