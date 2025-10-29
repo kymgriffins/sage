@@ -189,10 +189,108 @@ async function searchYouTubeChannels(query: string, maxResults: number = 20): Pr
   }
 }
 
+// Mock channels data for demo/fallback mode
+const mockChannels: YouTubeChannelDetails[] = [
+  {
+    id: 'UCqK_GSMbpiV8spMlbzpv8Bw',
+    kind: 'youtube#channel',
+    etag: 'etag1',
+    snippet: {
+      title: 'Trading Educators Academy',
+      description: 'Professional trading education with real strategies and market analysis. Daily live sessions and comprehensive courses for serious traders.',
+      customUrl: 'tradingeducators',
+      publishedAt: '2020-01-15T00:00:00Z',
+      thumbnails: {
+        default: { url: 'https://via.placeholder.com/88x88/ccffcc/000000?text=TEA', width: 88, height: 88 },
+        medium: { url: 'https://via.placeholder.com/240x240/ccffcc/000000?text=TEA', width: 240, height: 240 },
+        high: { url: 'https://via.placeholder.com/480x480/ccffcc/000000?text=TEA', width: 480, height: 480 }
+      },
+      localized: {
+        title: 'Trading Educators Academy',
+        description: 'Professional trading education with real strategies and market analysis.'
+      },
+      country: 'US'
+    },
+    statistics: {
+      viewCount: '34000000',
+      subscriberCount: '256000',
+      hiddenSubscriberCount: false,
+      videoCount: '342'
+    },
+    brandingSettings: {
+      channel: {
+        title: 'Trading Educators Academy',
+        description: 'Professional trading education with real strategies and market analysis.',
+        keywords: 'trading forex stocks crypto technical analysis',
+        defaultTab: 'home',
+        moderateComments: false,
+        showRelatedChannels: true
+      }
+    }
+  },
+  {
+    id: 'UCVeW9qkBjo3zosnqUbG7CFw',
+    kind: 'youtube#channel',
+    etag: 'etag2',
+    snippet: {
+      title: 'The Trading Channel',
+      description: 'Advanced trading strategies and market analysis. Live trading sessions and educational content for all skill levels.',
+      customUrl: 'thetradingchannel',
+      publishedAt: '2018-03-22T00:00:00Z',
+      thumbnails: {
+        default: { url: 'https://via.placeholder.com/88x88/ffcccc/000000?text=TTC', width: 88, height: 88 },
+        medium: { url: 'https://via.placeholder.com/240x240/ffcccc/000000?text=TTC', width: 240, height: 240 },
+        high: { url: 'https://via.placeholder.com/480x480/ffcccc/000000?text=TTC', width: 480, height: 480 }
+      },
+      localized: {
+        title: 'The Trading Channel',
+        description: 'Advanced trading strategies and market analysis.'
+      },
+      country: 'GB'
+    },
+    statistics: {
+      viewCount: '125000000',
+      subscriberCount: '890000',
+      hiddenSubscriberCount: false,
+      videoCount: '1250'
+    },
+    brandingSettings: {
+      channel: {
+        title: 'The Trading Channel',
+        description: 'Advanced trading strategies and market analysis.',
+        keywords: 'trading live sessions market analysis strategies',
+        defaultTab: 'home',
+        moderateComments: false,
+        showRelatedChannels: true
+      }
+    }
+  }
+];
+
+// Get mock channels for demo/fallback mode
+async function getMockChannels(query: string): Promise<YouTubeChannelDetails[]> {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 100));
+
+  // Filter mock data based on search query
+  return mockChannels.filter(channel => {
+    const title = channel.snippet.title.toLowerCase();
+    const desc = channel.snippet.description.toLowerCase();
+    const keywords = channel.brandingSettings?.channel?.keywords?.toLowerCase() || '';
+    const searchTerm = query.toLowerCase();
+
+    return title.includes(searchTerm) ||
+           desc.includes(searchTerm) ||
+           keywords.includes(searchTerm);
+  });
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q')?.trim();
+    const forceMockMode = searchParams.get('mode') === 'mock';
+    const forceApiMode = searchParams.get('mode') === 'api';
 
     if (!query) {
       return NextResponse.json(
@@ -204,8 +302,30 @@ export async function GET(request: NextRequest) {
     // Get authenticated user (for future personalization)
     const user = await stackServerApp.getUser();
 
-    // Search YouTube channels with real API
-    const channels = await searchYouTubeChannels(query);
+    // Check API mode preference and availability
+    const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+    const hasValidApiKey = Boolean(YOUTUBE_API_KEY && YOUTUBE_API_KEY !== 'your_youtube_api_key_here');
+
+    // Determine search mode
+    let useRealApi = false;
+
+    if (forceApiMode && hasValidApiKey) {
+      useRealApi = true; // Force real API
+    } else if (forceMockMode) {
+      useRealApi = false; // Force mock mode
+    } else {
+      useRealApi = hasValidApiKey; // Default to API if available
+    }
+
+    let channels: YouTubeChannelDetails[];
+
+    if (useRealApi) {
+      // Search YouTube channels with real API
+      channels = await searchYouTubeChannels(query);
+    } else {
+      // Fallback to mock data when API unavailable or force mock mode
+      channels = await getMockChannels(query);
+    }
 
     // Filter for trading-relevant channels and score them
     const scoredChannels = channels
