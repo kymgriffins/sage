@@ -200,9 +200,48 @@ export function ChannelDiscovery() {
         variant: "info"
       });
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Use real API for subscription management
+      const method = currentlySubscribed ? 'DELETE' : 'POST';
+      const url = `/api/channels/subscribe${currentlySubscribed ? `?channelId=${encodeURIComponent(channelId)}` : ''}`;
 
+      const body = currentlySubscribed ? undefined : JSON.stringify({ channelId });
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Subscription API error:', data);
+
+        // Handle specific error types
+        if (response.status === 409) {
+          toast({
+            title: "Already subscribed",
+            description: `You are already following "${channelName}"`,
+            variant: "warning"
+          });
+          return;
+        }
+
+        if (response.status === 404) {
+          toast({
+            title: "Channel not found",
+            description: "This channel may no longer exist or you may not be subscribed",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        throw new Error(data.error || 'Subscription request failed');
+      }
+
+      // Update local state on success
       setUserSubscriptions(prev => {
         const newSet = new Set(prev);
         if (currentlySubscribed) {
@@ -213,6 +252,7 @@ export function ChannelDiscovery() {
         return newSet;
       });
 
+      // Update search results UI
       setSearchResults(prev =>
         prev.map(result =>
           result.snippet.channelId === channelId
@@ -230,9 +270,11 @@ export function ChannelDiscovery() {
     } catch (error) {
       console.error('Subscription error:', error);
 
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+
       toast({
         title: "Subscription failed",
-        description: `Unable to ${currentlySubscribed ? 'unfollow' : 'follow'} ${channelName}. Please try again.`,
+        description: `Unable to ${currentlySubscribed ? 'unfollow' : 'follow'} ${channelName}. Please check your connection and try again.`,
         variant: "destructive"
       });
     }
