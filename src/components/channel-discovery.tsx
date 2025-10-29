@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/auth";
 
 interface YouTubeChannel {
@@ -37,6 +38,7 @@ export function ChannelDiscovery() {
   const [searchResults, setSearchResults] = useState<ChannelSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [userSubscriptions, setUserSubscriptions] = useState<Set<string>>(new Set(['UC123', 'UC456']));
+  const [searchMode, setSearchMode] = useState<'auto' | 'mock' | 'api'>('auto'); // 'auto', 'mock', or 'api'
 
   // Mock channel data for UI development
   const mockChannels: YouTubeChannel[] = [
@@ -99,8 +101,16 @@ export function ChannelDiscovery() {
     setLoading(true);
 
     try {
+      // Determine mode parameter based on search mode
+      let modeParam = '';
+      if (searchMode === 'mock') {
+        modeParam = '&mode=mock';
+      } else if (searchMode === 'api') {
+        modeParam = '&mode=api';
+      } // 'auto' mode doesn't need a parameter
+
       // Call real YouTube API through our backend
-      const response = await fetch(`/api/channels/search?q=${encodeURIComponent(query)}`);
+      const response = await fetch(`/api/channels/search?q=${encodeURIComponent(query)}${modeParam}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -187,6 +197,68 @@ export function ChannelDiscovery() {
 
   return (
     <div className="space-y-6">
+      {/* Search Mode Toggle */}
+      <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium">Search Mode</h4>
+          <div className="flex items-center gap-4">
+            {/* Auto Mode */}
+            <div className="flex items-center gap-2">
+              <input
+                type="radio"
+                id="auto-mode"
+                name="search-mode"
+                checked={searchMode === 'auto'}
+                onChange={() => setSearchMode('auto')}
+                className="w-4 h-4"
+              />
+              <label htmlFor="auto-mode" className="text-sm font-medium">
+                Auto
+                <span className="text-muted-foreground text-xs ml-1">(API if available)</span>
+              </label>
+            </div>
+
+            {/* Mock Mode */}
+            <div className="flex items-center gap-2">
+              <input
+                type="radio"
+                id="mock-mode"
+                name="search-mode"
+                checked={searchMode === 'mock'}
+                onChange={() => setSearchMode('mock')}
+                className="w-4 h-4"
+              />
+              <label htmlFor="mock-mode" className="text-sm font-medium">
+                Demo/Mock
+                <span className="text-muted-foreground text-xs ml-1">(No API)</span>
+              </label>
+            </div>
+
+            {/* API Mode */}
+            <div className="flex items-center gap-2">
+              <input
+                type="radio"
+                id="api-mode"
+                name="search-mode"
+                checked={searchMode === 'api'}
+                onChange={() => setSearchMode('api')}
+                className="w-4 h-4"
+              />
+              <label htmlFor="api-mode" className="text-sm font-medium">
+                YouTube API
+                <span className="text-muted-foreground text-xs ml-1">(Force API)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-xs text-muted-foreground">
+          {searchMode === 'auto' && 'Automatically uses YouTube API if configured, falls back to mock data'}
+          {searchMode === 'mock' && 'Always uses demo/mock data without calling YouTube API'}
+          {searchMode === 'api' && 'Forces use of YouTube API (will fail if not configured)'}
+        </div>
+      </div>
+
       {/* Search */}
       <div className="flex gap-2">
         <Input
@@ -201,7 +273,7 @@ export function ChannelDiscovery() {
           onClick={() => searchChannels(searchQuery)}
           disabled={loading}
         >
-          {loading ? 'Searching...' : 'Search'}
+          {loading ? 'Searching...' : 'Search'} {searchMode === 'mock' ? '(Demo)' : searchMode === 'api' ? '(API)' : '(Auto)'}
         </Button>
       </div>
 
