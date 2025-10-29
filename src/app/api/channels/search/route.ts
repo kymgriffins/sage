@@ -181,60 +181,196 @@ async function searchYouTubeChannels(query: string, apiKey: string): Promise<any
   return channelsData.items || [];
 }
 
-// Mock data for demo mode
+// Mock data for demo mode - Top ICT Livestream Traders
 const mockChannels = [
+  // 1. Tanja Trades (Highest subscribers)
   {
-    id: 'UCqK_GSMbpiV8spMlbzpv8Bw',
+    id: 'UC-TANJA-TRADES',
     snippet: {
-      channelId: 'UCqK_GSMbpiV8spMlbzpv8Bw',
-      title: 'Trading Educators Academy',
-      description: 'Professional trading education with real strategies and market analysis. Daily live sessions and comprehensive courses.',
+      channelId: 'UC-TANJA-TRADES',
+      title: 'Tanja Trades',
+      description: 'Elite ICT trader livestreams focusing on smart money concepts, institutional order flow, and advanced price action. Live analysis of forex markets with proven strategies.',
       thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/ccffcc/000000?text=TEA' },
-        medium: { url: 'https://via.placeholder.com/240x240/ccffcc/000000?text=TEA' },
-        high: { url: 'https://via.placeholder.com/240x240/ccffcc/000000?text=TEA' }
+        default: { url: 'https://via.placeholder.com/88x88/e91e63/ffffff?text=TT' },
+        medium: { url: 'https://via.placeholder.com/240x240/e91e63/ffffff?text=TT' },
+        high: { url: 'https://via.placeholder.com/240x240/e91e63/ffffff?text=TT' }
       }
     },
     statistics: {
-      subscriberCount: '256000',
-      videoCount: '342',
-      viewCount: '34000000'
+      subscriberCount: '1250000',
+      videoCount: '842',
+      viewCount: '180000000'
     }
   },
+  // 2. ICT Inner Circle Trader
   {
-    id: 'UCVeW9qkBjo3zosnqUbG7CFw',
+    id: 'UC-ict-inner-circle',
     snippet: {
-      channelId: 'UCVeW9qkBjo3zosnqUbG7CFw',
-      title: 'The Trading Channel',
-      description: 'Advanced trading strategies and market analysis. Live trading sessions and educational content for all skill levels.',
+      channelId: 'UC-ict-inner-circle',
+      title: 'ICT Inner Circle Trader',
+      description: 'Pure institutional trading methodology. Daily livestreams breaking down smart money movements, liquidity concepts, and manipulator tactics in forex markets.',
       thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/ffcccc/000000?text=TTC' },
-        medium: { url: 'https://via.placeholder.com/240x240/ffcccc/000000?text=TTC' },
-        high: { url: 'https://via.placeholder.com/240x240/ffcccc/000000?text=TTC' }
+        default: { url: 'https://via.placeholder.com/88x88/9c27b0/ffffff?text=ICT' },
+        medium: { url: 'https://via.placeholder.com/240x240/9c27b0/ffffff?text=ICT' },
+        high: { url: 'https://via.placeholder.com/240x240/9c27b0/ffffff?text=ICT' }
       }
     },
     statistics: {
-      subscriberCount: '890000',
-      videoCount: '1250',
-      viewCount: '125000000'
+      subscriberCount: '980000',
+      videoCount: '1247',
+      viewCount: '250000000'
     }
   },
+  // 3. Tyler Trades
   {
-    id: 'UCI8X7tqLk-UZ0YNYI5qW8w',
+    id: 'UC-tyler-trades',
     snippet: {
-      channelId: 'UCI8X7tqLk-UZ0YNYI5qW8w',
-      title: 'ICT Mentor',
-      description: 'Cutting-edge inner circle trader concepts and methodologies. Master the markets with institutional trading approaches.',
+      channelId: 'UC-tyler-trades',
+      title: 'Tyler Trades',
+      description: 'Advanced ICT concepts explained simply. Live sessions covering institutional supply/demand zones, optimal trade entry, and risk management strategies.',
       thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/ffccaa/000000?text=ICT' },
-        medium: { url: 'https://via.placeholder.com/240x240/ffccaa/000000?text=ICT' },
-        high: { url: 'https://via.placeholder.com/240x240/ffccaa/000000?text=ICT' }
+        default: { url: 'https://via.placeholder.com/88x88/3f51b5/ffffff?text=TY' },
+        medium: { url: 'https://via.placeholder.com/240x240/3f51b5/ffffff?text=TY' },
+        high: { url: 'https://via.placeholder.com/240x240/3f51b5/ffffff?text=TY' }
       }
     },
     statistics: {
-      subscriberCount: '456000',
-      videoCount: '289',
-      viewCount: '78800000'
+      subscriberCount: '875000',
+      videoCount: '956',
+      viewCount: '145000000'
+    }
+  },
+  // 4. Fx4Living
+  {
+    id: 'UC-fx4living',
+    snippet: {
+      channelId: 'UC-fx4living',
+      title: 'Fx4Living',
+      description: 'Professional ICT trading advocate. Focus on sustainable wealth creation through smart money concepts, live market analysis, and mentorship.',
+      thumbnails: {
+        default: { url: 'https://via.placeholder.com/88x88/009688/ffffff?text=F4L' },
+        medium: { url: 'https://via.placeholder.com/240x240/009688/ffffff?text=F4L' },
+        high: { url: 'https://via.placeholder.com/240x240/009688/ffffff?text=F4L' }
+      }
+    },
+    statistics: {
+      subscriberCount: '756000',
+      videoCount: '634',
+      viewCount: '120000000'
+    }
+  },
+  // 5. Smart Money Concepts
+  {
+    id: 'UC-smart-money-concepts',
+    snippet: {
+      channelId: 'UC-smart-money-concepts',
+      title: 'Smart Money Concepts',
+      description: 'Deep dive into ICT trading philosophy. Weekly livestreams dissecting institutional behavior, order flow analysis, and market structure shifts.',
+      thumbnails: {
+        default: { url: 'https://via.placeholder.com/88x88/ff9800/000000?text=SMC' },
+        medium: { url: 'https://via.placeholder.com/240x240/ff9800/000000?text=SMC' },
+        high: { url: 'https://via.placeholder.com/240x240/ff9800/000000?text=SMC' }
+      }
+    },
+    statistics: {
+      subscriberCount: '683000',
+      videoCount: '892',
+      viewCount: '98000000'
+    }
+  },
+  // 6. Lord of Merchants
+  {
+    id: 'UC-lord-of-merchants',
+    snippet: {
+      channelId: 'UC-lord-of-merchants',
+      title: 'Lord of Merchants',
+      description: 'Master ICT trader sharing elite strategies. Daily market commentary focusing on institutional accumulation/distribution and liquidity grabs.',
+      thumbnails: {
+        default: { url: 'https://via.placeholder.com/88x88/795548/ffffff?text=LOM' },
+        medium: { url: 'https://via.placeholder.com/240x240/795548/ffffff?text=LOM' },
+        high: { url: 'https://via.placeholder.com/240x240/795548/ffffff?text=LOM' }
+      }
+    },
+    statistics: {
+      subscriberCount: '542000',
+      videoCount: '721',
+      viewCount: '89000000'
+    }
+  },
+  // 7. Charmaine (ICT Trading)
+  {
+    id: 'UC-charmaine-ict',
+    snippet: {
+      channelId: 'UC-charmaine-ict',
+      title: 'Charmaine ICT Trading',
+      description: 'Female ICT perspective on trading markets. Focus on psychological aspects of institutional trading with live session breakdowns and strategy guides.',
+      thumbnails: {
+        default: { url: 'https://via.placeholder.com/88x88/e91e63/ffffff?text=CH' },
+        medium: { url: 'https://via.placeholder.com/240x240/e91e63/ffffff?text=CH' },
+        high: { url: 'https://via.placeholder.com/240x240/e91e63/ffffff?text=CH' }
+      }
+    },
+    statistics: {
+      subscriberCount: '498000',
+      videoCount: '568',
+      viewCount: '76400000'
+    }
+  },
+  // 8. Institutional Order Flow
+  {
+    id: 'UC-institutional-order-flow',
+    snippet: {
+      channelId: 'UC-institutional-order-flow',
+      title: 'Institutional Order Flow',
+      description: 'Technical analysis through ICT lens. Live trading sessions analyzing institutional buying/selling behavior and smart money positioning.',
+      thumbnails: {
+        default: { url: 'https://via.placeholder.com/88x88/607d8b/ffffff?text=IOF' },
+        medium: { url: 'https://via.placeholder.com/240x240/607d8b/ffffff?text=IOF' },
+        high: { url: 'https://via.placeholder.com/240x240/607d8b/ffffff?text=IOF' }
+      }
+    },
+    statistics: {
+      subscriberCount: '421000',
+      videoCount: '783',
+      viewCount: '67000000'
+    }
+  },
+  // 9. Liquidity Hunter
+  {
+    id: 'UC-liquidity-hunter',
+    snippet: {
+      channelId: 'UC-liquidity-hunter',
+      title: 'Liquidity Hunter',
+      description: 'ICT-focused trading strategies. Specializing in liquidity concepts, manipulation tactics, and institutional trading zones for consistent profits.',
+      thumbnails: {
+        default: { url: 'https://via.placeholder.com/88x88/2196f3/ffffff?text=LH' },
+        medium: { url: 'https://via.placeholder.com/240x240/2196f3/ffffff?text=LH' },
+        high: { url: 'https://via.placeholder.com/240x240/2196f3/ffffff?text=LH' }
+      }
+    },
+    statistics: {
+      subscriberCount: '387000',
+      videoCount: '445',
+      viewCount: '58000000'
+    }
+  },
+  // 10. Market Structure Pro
+  {
+    id: 'UC-market-structure-pro',
+    snippet: {
+      channelId: 'UC-market-structure-pro',
+      title: 'Market Structure Pro',
+      description: 'Advanced ICT market structure analysis. Daily videos breaking down institutional shifts, supply/demand imbalances, and smart money movements.',
+      thumbnails: {
+        default: { url: 'https://via.placeholder.com/88x88/4caf50/ffffff?text=MSP' },
+        medium: { url: 'https://via.placeholder.com/240x240/4caf50/ffffff?text=MSP' },
+        high: { url: 'https://via.placeholder.com/240x240/4caf50/ffffff?text=MSP' }
+      }
+    },
+    statistics: {
+      subscriberCount: '356000',
+      videoCount: '687',
+      viewCount: '52000000'
     }
   }
 ];
