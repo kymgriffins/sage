@@ -3,6 +3,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { stackServerApp } from '@/stack/server';
+import { db } from '@/lib/db';
+import { channelSubscriptions, channels } from '@/lib/schema';
+import { eq, desc } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,78 +21,47 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const includeStats = searchParams.get('stats') === 'true';
 
-    // TODO: Fetch user's subscriptions from database
-    // const subscriptions = await db.select()
-    //   .from(channelSubscriptions)
-    //   .where(eq(channelSubscriptions.userId, user.id))
-    //   .leftJoin(channels, eq(channelSubscriptions.channelId, channels.id))
-    //   .leftJoin(streams, eq(channels.id, streams.channelId))
-    //   .groupBy(channels);
+    // Fetch user's subscriptions from database
+    const userSubscriptions = await db.select({
+      id: channelSubscriptions.id,
+      channelId: channelSubscriptions.channelId,
+      youtubeChannelId: channels.youtubeChannelId,
+      title: channels.channelTitle,
+      description: channels.channelDescription,
+      subscribers: channels.subscriberCount,
+      thumbnail: channels.profileImageUrl,
+      subscribedAt: channelSubscriptions.subscribedAt,
+      isFavorite: channelSubscriptions.isFavorite,
+      preferences: channelSubscriptions.trackingPreferences,
+    })
+    .from(channelSubscriptions)
+    .innerJoin(channels, eq(channelSubscriptions.channelId, channels.id))
+    .where(eq(channelSubscriptions.userId, user.id))
+    .orderBy(desc(channelSubscriptions.isFavorite), desc(channelSubscriptions.subscribedAt));
 
-    // Mock user subscriptions data
-    const mockSubscriptions = [
-      {
-        id: "1",
-        channelId: "UCqK_GSMbpiV8spMlbzpv8Bw",
-        youtubeChannelId: "UCqK_GSMbpiV8spMlbzpv8Bw",
-        title: "Trading Educators Academy",
-        description: "Professional trading education with real strategies and market analysis.",
-        subscribers: "256000",
-        thumbnail: "https://via.placeholder.com/240x240/ccffcc/000000?text=TEA",
-        subscribedAt: "2024-10-15T10:00:00Z",
-        isFavorite: true,
-        lastActivity: "2024-10-29T14:30:00Z",
-        analysisCount: 12,
-        status: "active",
-        preferences: {
-          content_types: ["live", "uploads"],
-          notification_settings: {
-            live_start: true,
-            analysis_complete: true,
-            key_insights: false
-          },
-          processing_modes: {
-            real_time: true,
-            post_stream: true,
-            batch: false
-          }
-        }
-      },
-      {
-        id: "2",
-        channelId: "UCVeW9qkBjo3zosnqUbG7CFw",
-        youtubeChannelId: "UCVeW9qkBjo3zosnqUbG7CFw",
-        title: "The Trading Channel",
-        description: "Advanced trading strategies and market analysis.",
-        subscribers: "890000",
-        thumbnail: "https://via.placeholder.com/240x240/ffcccc/000000?text=TTC",
-        subscribedAt: "2024-09-20T08:15:00Z",
-        isFavorite: false,
-        lastActivity: "2024-10-28T16:45:00Z",
-        analysisCount: 8,
-        status: "active",
-        preferences: {
-          content_types: ["live", "uploads"],
-          notification_settings: {
-            live_start: true,
-            analysis_complete: true,
-            key_insights: false
-          },
-          processing_modes: {
-            real_time: true,
-            post_stream: true,
-            batch: false
-          }
-        }
-      }
-    ];
+    // Transform subscriptions to match API response format
+    const subscriptions = userSubscriptions.map(sub => ({
+      id: sub.id,
+      channelId: sub.channelId,
+      youtubeChannelId: sub.youtubeChannelId,
+      title: sub.title || 'Unknown Channel',
+      description: sub.description || 'Trading education channel',
+      subscribers: sub.subscribers?.toString() || '0',
+      thumbnail: sub.thumbnail || null,
+      subscribedAt: sub.subscribedAt ? sub.subscribedAt.toISOString() : new Date().toISOString(),
+      isFavorite: sub.isFavorite,
+      lastActivity: sub.subscribedAt ? sub.subscribedAt.toISOString() : new Date().toISOString(), // TODO: Update when we track last activity
+      analysisCount: 0, // TODO: Implement real analytics
+      status: "active", // TODO: Add subscription status support
+      preferences: sub.preferences || {}
+    }));
 
-    let enrichedSubscriptions = mockSubscriptions;
+    let enrichedSubscriptions = subscriptions;
 
     // Add additional stats if requested
     if (includeStats) {
       // TODO: Enrich with real analytics data
-      enrichedSubscriptions = mockSubscriptions.map(sub => ({
+      enrichedSubscriptions = subscriptions.map(sub => ({
         ...sub,
         stats: {
           recentAnalyses: Math.floor(Math.random() * 20),
@@ -100,13 +72,8 @@ export async function GET(request: NextRequest) {
       }));
     }
 
-    // Sort by favorite and then by subscription date
-    const sortedSubscriptions = enrichedSubscriptions.sort((a, b) => {
-      if (a.isFavorite && !b.isFavorite) return -1;
-      if (!a.isFavorite && b.isFavorite) return 1;
-      return new Date(b.subscribedAt).getTime() - new Date(a.subscribedAt).getTime();
-    });
-
+    // Already sorted by the database query (favorites first, then by subscription date)
+    const sortedSubscriptions = enrichedSubscriptions;
     const favoriteCount = sortedSubscriptions.filter(s => s.isFavorite).length;
 
     return NextResponse.json({

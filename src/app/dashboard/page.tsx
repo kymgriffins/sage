@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth, useUserPermissions, useSubscription } from "@/lib/auth";
 import { ChannelDiscovery } from "@/components/channel-discovery";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 interface TrackedChannel {
   id: string;
@@ -38,35 +39,76 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const permissions = useUserPermissions();
   const subscription = useSubscription();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const [trackedChannels, setTrackedChannels] = useState<TrackedChannel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dashboardStats, setDashboardStats] = useState({
+    totalStreams: 0,
+    totalInsights: 0,
+    averageAccuracy: 0,
+    favoriteChannels: 0
+  });
 
-  // Mock data for UI development
-  const trackedChannels: TrackedChannel[] = [
-    {
-      id: "1",
-      youtubeChannelId: "UCqK_GSMbpiV8spMlbzpv8Bw",
-      title: "Trading Educators Academy",
-      subscriberCount: 256000,
-      lastAnalyzed: "2024-10-29T10:00:00Z",
-      analysisCount: 12,
-      favorite: true
-    },
-    {
-      id: "2",
-      youtubeChannelId: "UCVeW9qkBjo3zosnqUbG7CFw",
-      title: "The Trading Channel",
-      subscriberCount: 890000,
-      lastAnalyzed: "2024-10-28T15:30:00Z",
-      analysisCount: 8,
-      favorite: false
+  // Fetch user's followed channels on component mount
+  useEffect(() => {
+    if (user) {
+      fetchUserChannels();
     }
-  ];
+  }, [user]);
 
+  const fetchUserChannels = async () => {
+    try {
+      const response = await fetch('/api/user/channels?stats=true');
+      const data = await response.json();
+
+      if (data.success) {
+        // Transform API response to component format
+        const channels = data.data.subscriptions.map((sub: any) => ({
+          id: sub.id,
+          youtubeChannelId: sub.youtubeChannelId,
+          title: sub.title,
+          subscriberCount: parseInt(sub.subscribers) || 0,
+          lastAnalyzed: sub.lastActivity,
+          analysisCount: sub.analysisCount,
+          favorite: sub.isFavorite
+        }));
+
+        setTrackedChannels(channels);
+
+        // Update dashboard stats
+        setDashboardStats({
+          totalStreams: data.data.summary.totalAnalyzed || 0,
+          totalInsights: channels.reduce((sum: number, channel: TrackedChannel) => sum + channel.analysisCount, 0),
+          averageAccuracy: 94.2, // TODO: Calculate real average
+          favoriteChannels: data.data.summary.favoritesCount
+        });
+      } else {
+        console.error('Failed to fetch user channels:', data.error);
+        toast({
+          title: "Failed to load channels",
+          description: "Could not load your followed channels. Please refresh the page.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user channels:', error);
+      toast({
+        title: "Connection error",
+        description: "Could not connect to load your channels. Please check your connection.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock recent streams data - TODO: Replace with real data
   const recentStreams: RecentStream[] = [
     {
       id: "1",
       title: "Market Structure Breakdown - October 29",
-      channelTitle: "Trading Educators Academy",
+      channelTitle: trackedChannels[0]?.title || "Trading Educators Academy",
       status: "completed",
       processingTime: "45s",
       insights: 7
@@ -74,19 +116,12 @@ export default function DashboardPage() {
     {
       id: "2",
       title: "Live Session: Scalping Strategies",
-      channelTitle: "ICT Mentor",
+      channelTitle: trackedChannels[1]?.title || "ICT Mentor",
       status: "processing",
       processingTime: "32s",
       insights: undefined
     }
   ];
-
-  const analytics: DashboardAnalytics = {
-    totalStreams: 156,
-    totalInsights: 1234,
-    averageAccuracy: 94.2,
-    favoriteChannels: 2
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -128,25 +163,25 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card className="p-6 bg-white/5 border-white/10">
                 <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Streams</h3>
-                <div className="text-2xl font-bold text-foreground">{analytics.totalStreams}</div>
+                <div className="text-2xl font-bold text-foreground">{dashboardStats.totalStreams}</div>
                 <p className="text-xs text-green-400 mt-1">+12% this month</p>
               </Card>
 
               <Card className="p-6 bg-white/5 border-white/10">
                 <h3 className="text-sm font-medium text-muted-foreground mb-2">Trading Insights</h3>
-                <div className="text-2xl font-bold text-foreground">{analytics.totalInsights.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-foreground">{dashboardStats.totalInsights.toLocaleString()}</div>
                 <p className="text-xs text-green-400 mt-1">+8% accuracy</p>
               </Card>
 
               <Card className="p-6 bg-white/5 border-white/10">
                 <h3 className="text-sm font-medium text-muted-foreground mb-2">Avg Accuracy</h3>
-                <div className="text-2xl font-bold text-foreground">{analytics.averageAccuracy}%</div>
+                <div className="text-2xl font-bold text-foreground">{dashboardStats.averageAccuracy}%</div>
                 <p className="text-xs text-cyan-400 mt-1">Industry leading</p>
               </Card>
 
               <Card className="p-6 bg-white/5 border-white/10">
                 <h3 className="text-sm font-medium text-muted-foreground mb-2">Tracked Channels</h3>
-                <div className="text-2xl font-bold text-foreground">{analytics.favoriteChannels}</div>
+                <div className="text-2xl font-bold text-foreground">{dashboardStats.favoriteChannels}</div>
                 <p className="text-xs text-purple-400 mt-1">Add more →</p>
               </Card>
             </div>

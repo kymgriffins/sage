@@ -487,11 +487,13 @@ export function ChannelDiscovery() {
           <h3 className="text-lg font-semibold text-foreground mb-4">Popular Trading Channels</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
-              "Peter Brandt",
-              "ICT Mentor",
-              "The Trading Channel",
-              "Rayner Teo",
-              "Wyckoff Trading"
+              "Tanja Trades",
+              "Tyler Trades",
+              "Fx4Living",
+              "Lord of Merchants",
+              "Charmaine ICT Trading",
+              "ICT Inner Circle Trader",
+              "Smart Money Concepts"
             ].map((suggestion) => (
               <Button
                 key={suggestion}
