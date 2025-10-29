@@ -1,190 +1,199 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Brain, Play, BarChart3, Zap, Clock, Settings, Download, Sparkles } from 'lucide-react';
+import Link from 'next/link'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950/30 to-slate-900">
-      {/* Navigation */}
-      <nav className="border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-xl">
-        <div className="container mx-auto px-6 py-4">
+    <main className="min-h-screen bg-background">
+      {/* Animated gradient orb background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500/20 dark:bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 dark:bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-500/10 dark:bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+
+      {/* Glowing grid overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]" />
+
+      <div className="relative z-10 container mx-auto px-6">
+        {/* Minimal nav */}
+        <nav className="py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="relative">
-                <Brain className="h-8 w-8 text-cyan-400" />
-                <Sparkles className="h-3 w-3 text-cyan-300 absolute -top-1 -right-1" />
-              </div>
-              <span className="text-2xl font-bold text-white">SAGE</span>
+              <div className="w-3 h-3 bg-cyan-400 rounded-full animate-ping" />
+              <span className="text-xl font-light text-foreground dark:text-white tracking-tight">SAGE</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" className="text-slate-300 hover:text-white">
-                <Download className="h-4 w-4 mr-2" />
-                Mobile App
-              </Button>
+            <div className="flex items-center space-x-6">
+              <Link href="/demo" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+                Demo
+              </Link>
+              <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+                Pricing →
+              </Link>
+              <ThemeToggle />
+            </div>
+          </div>
+        </nav>
+
+        {/* Hero */}
+        <div className="py-32 text-center">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 backdrop-blur-sm mb-8">
+            <div className="w-2 h-2 bg-cyan-400 rounded-full mr-2 animate-pulse" />
+            <span className="text-sm text-foreground dark:text-white/60">AI-POWERED TRADING INTELLIGENCE</span>
+          </div>
+
+          <h1 className="text-7xl lg:text-9xl font-black tracking-tight mb-8">
+            <span className="bg-gradient-to-r from-foreground dark:from-white via-cyan-400 to-foreground dark:to-white bg-clip-text text-transparent">
+              SAGE
+            </span>
+          </h1>
+
+          <p className="text-2xl lg:text-4xl text-muted-foreground dark:text-white/40 mb-12 max-w-3xl mx-auto leading-tight">
+            AI that <span className="text-foreground dark:text-white">understands</span> trading streams.
+            Extracts Trading<span className="text-foreground dark:text-white"> insights </span>. Finds <span className="text-foreground dark:text-white">edge</span>.
+          </p>
+
+          {/* CTA */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20">
+            <Link
+              href="/analyze"
+              className="group relative px-8 py-4 bg-primary text-primary-foreground dark:bg-white dark:text-black rounded-lg font-medium text-lg hover:bg-cyan-100 transition-all duration-300 hover:scale-105"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-lg opacity-0 group-hover:opacity-100 blur transition-opacity duration-300 -z-10" />
+              Start Analysis
+            </Link>
+
+            <Link
+              href="/demo"
+              className="px-8 py-4 border border-white/20 dark:border-white/20 text-foreground dark:text-white rounded-lg font-medium text-lg hover:bg-white/5 dark:hover:bg-white/5 transition-all duration-300"
+            >
+              Watch Demo
+            </Link>
+          </div>
+
+          {/* Live Metrics */}
+          <div className="inline-flex items-center space-x-8 text-muted-foreground dark:text-white/40 text-sm">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <span>1.2K Streams Analyzed</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+              <span>94% Accuracy</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
+              <span>Real-time Processing</span>
             </div>
           </div>
         </div>
-      </nav>
 
-      {/* Hero Section */}
-      <section className="px-6 py-16 lg:py-24">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <Badge variant="secondary" className="px-4 py-2 bg-cyan-500/10 text-cyan-300 border-cyan-500/20 mb-6">
-              AI Smart Agent • Project Management
-            </Badge>
-            <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-white mb-6">
-              Trading Stream
-              <br />
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                Analyser
-              </span>
-            </h1>
-            <p className="text-xl lg:text-2xl text-slate-300 mb-8 max-w-2xl mx-auto">
-              Manage Projects and Build Your Ultimate AI Agent — Workforce
-            </p>
-
-            {/* CTA Section */}
-            <div className="space-y-4">
-              <div>
-                <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-12 py-6 text-lg">
-                  <Zap className="h-5 w-5 mr-2" />
-                  Get Started — It's True
-                </Button>
-              </div>
-              <div>
-                <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download — Mobile App
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Analytics Dashboard Preview */}
-          <div className="grid lg:grid-cols-2 gap-8 items-start">
-            {/* Left Column - Scripted Section */}
-            <div className="space-y-6">
-              <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="text-cyan-300 flex items-center">
-                    <Settings className="h-5 w-5 mr-2" />
-                    Scripted
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
-                      <span className="text-slate-300">Advanced</span>
-                      <Badge variant="outline" className="text-cyan-300 border-cyan-500/30">
-                        All Time, Time, Range...Set
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
-                      <span className="text-slate-300">Eclipse</span>
-                      <Badge variant="outline" className="text-blue-300 border-blue-500/30">
-                        Add Time, Time, Range...Set
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Stream Controls */}
-              <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center">
-                    <Play className="h-5 w-5 mr-2" />
-                    Live Analysis
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
-                      <span className="text-slate-300">Current Stream</span>
-                      <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
-                        Active
-                      </Badge>
-                    </div>
-                    <Button className="w-full bg-cyan-500/10 text-cyan-300 border-cyan-500/20 hover:bg-cyan-500/20">
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      Generate Insights
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Column - Disk/Integration Section */}
-            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center">
-                  <Brain className="h-5 w-5 mr-2" />
-                  Disk & Integrations
-                </CardTitle>
-                <CardDescription className="text-slate-400">
-                  Connected platforms and data sources
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Integration Items */}
-                  <div className="grid grid-cols-2 gap-4">
-                    {[
-                      { name: 'Rakuten', color: 'bg-red-500/20', text: 'text-red-300' },
-                      { name: 'NCR', color: 'bg-blue-500/20', text: 'text-blue-300' },
-                      { name: 'monday', color: 'bg-orange-500/20', text: 'text-orange-300' },
-                      { name: 'YouTube', color: 'bg-red-500/20', text: 'text-red-300' },
-                    ].map((item, index) => (
-                      <div
-                        key={index}
-                        className={`p-4 rounded-lg border ${item.color} border-opacity-30 backdrop-blur-sm`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                          <span className={`font-medium ${item.text}`}>{item.name}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Stats Overview */}
-                  <div className="grid grid-cols-2 gap-4 pt-4">
-                    <div className="text-center p-4 bg-slate-700/30 rounded-lg">
-                      <div className="text-2xl font-bold text-cyan-300">1.2K</div>
-                      <div className="text-sm text-slate-400">Streams Analyzed</div>
-                    </div>
-                    <div className="text-center p-4 bg-slate-700/30 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-300">95%</div>
-                      <div className="text-sm text-slate-400">Accuracy Rate</div>
-                    </div>
-                  </div>
+        {/* Live Preview Section */}
+        <div className="py-20">
+          <div className="max-w-6xl mx-auto">
+            <div className="bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 rounded-2xl backdrop-blur-sm overflow-hidden">
+              {/* Window Controls */}
+              <div className="flex items-center space-x-4 p-6 border-b border-white/10 dark:border-white/10">
+                <div className="flex space-x-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full" />
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full" />
+                  <div className="w-3 h-3 bg-green-500 rounded-full" />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <div className="text-muted-foreground dark:text-white/40 text-sm font-mono">sage-analysis-terminal</div>
+              </div>
 
-          {/* Bottom CTA */}
-          <div className="text-center mt-16">
-            <Card className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-cyan-500/20 backdrop-blur-sm">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold text-white mb-4">
-                  Ready to Analyze Your Trading Streams?
-                </h3>
-                <p className="text-slate-300 mb-6">
-                  Join professional traders using SAGE for intelligent stream analysis
-                </p>
-                <Button size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
-                  <Zap className="h-5 w-5 mr-2" />
-                  Start Free Analysis
-                </Button>
-              </CardContent>
-            </Card>
+              {/* Code Preview */}
+              <div className="p-8 font-mono text-sm">
+                <div className="text-cyan-400">const analysis = await sage.analyzeStream(videoURL)</div>
+                <div className="text-purple-400 ml-4">{`// → Processing stream...`}</div>
+                <div className="text-green-400 ml-4">{`// ✓ Transcript extracted (98% accuracy)`}</div>
+                <div className="text-green-400 ml-4">{`// ✓ 8 trades detected`}</div>
+                <div className="text-green-400 ml-4">{`// ✓ Strategy patterns identified`}</div>
+                <br />
+                {/* <div className="text-purple-400">analysis.trades</div>
+                <div className="text-foreground dark:text-white ml-4">{`[`}</div>
+                <div className="text-foreground dark:text-white ml-8">{`{ timestamp: `}<span className="text-amber-400">"00:12:34"</span>, signal: <span className="text-green-400">"BUY"</span>, confidence: <span className="text-cyan-400">0.94</span> },</div>
+                <div className="text-foreground dark:text-white ml-8">{`{ timestamp: `}<span className="text-amber-400">"00:28:15"</span>, signal: <span className="text-red-400">"SELL"</span>, confidence: <span className="text-cyan-400">0.87</span> },</div>
+                <div className="text-foreground dark:text-white ml-8">{`{ timestamp: `}<span className="text-amber-400">"00:45:02"</span>, signal: <span className="text-green-400">"BUY"</span>, confidence: <span className="text-cyan-400">0.96</span> }</div>
+                <div className="text-foreground dark:text-white ml-4">{`]`}</div> */}
+                <br />
+                <div className="text-purple-400">analysis.performance</div>
+                <div className="text-foreground dark:text-white ml-4">{`{`}</div>
+                <div className="text-foreground dark:text-white ml-8">winRate: <span className="text-cyan-400">0.75</span>,</div>
+                <div className="text-foreground dark:text-white ml-8">avgWin: <span className="text-green-400">"+2.4%"</span>,</div>
+                <div className="text-foreground dark:text-white ml-8">strategy: <span className="text-amber-400">"Breakout Momentum"</span></div>
+                <div className="text-foreground dark:text-white ml-4">{`}`}</div>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
+
+        {/* Features Grid */}
+        <div className="py-20">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {[
+              {
+                title: "Real-time Analysis",
+                desc: "Process streams as they happen",
+                color: "cyan"
+              },
+              {
+                title: "Trade Detection",
+                desc: "AI identifies every trade with timestamps",
+                color: "purple"
+              },
+              {
+                title: "Strategy Insights",
+                desc: "Understand the why behind every move",
+                color: "blue"
+              }
+            ].map((feature, index) => (
+              <div key={index} className="group">
+                <div className="bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 rounded-xl p-6 backdrop-blur-sm hover:bg-white/10 dark:hover:bg-white/10 transition-all duration-300">
+                  <div className={`w-8 h-8 bg-${feature.color}-500/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                    <div className={`w-3 h-3 bg-${feature.color}-400 rounded-full animate-pulse`} />
+                  </div>
+                  <h3 className="text-foreground dark:text-white text-lg font-medium mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground dark:text-white/40 text-sm">{feature.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Final CTA */}
+        <div className="py-20 text-center">
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-4xl lg:text-6xl font-black text-foreground dark:text-white mb-8">
+              Ready to <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Analyze</span>?
+            </h2>
+            <p className="text-muted-foreground dark:text-white/40 text-lg mb-8">
+              Join traders who are already extracting alpha from every stream.
+            </p>
+            <Link
+              href="/analyze"
+              className="inline-flex items-center px-8 py-4 bg-primary text-primary-foreground dark:bg-white dark:text-black rounded-lg font-medium text-lg hover:bg-cyan-100 transition-all duration-300 hover:scale-105"
+            >
+              Start Free Analysis
+              <div className="w-2 h-2 bg-black rounded-full ml-3 animate-pulse" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="py-8 border-t border-white/10 dark:border-white/10">
+          <div className="flex items-center justify-between text-muted-foreground dark:text-white/40 text-sm">
+            <div className="flex items-center space-x-3">
+              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-ping" />
+              <span>SAGE AI • 2024</span>
+            </div>
+            <div className="flex items-center space-x-6">
+              <Link href="/privacy" className="hover:text-foreground dark:hover:text-white transition-colors">Privacy</Link>
+              <Link href="/terms" className="hover:text-foreground dark:hover:text-white transition-colors">Terms</Link>
+              <Link href="/contact" className="hover:text-foreground dark:hover:text-white transition-colors">Contact</Link>
+            </div>
+          </div>
+        </footer>
+      </div>
     </main>
-  );
+  )
 }
