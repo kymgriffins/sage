@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -18,120 +18,115 @@ interface APIEndpoint {
 }
 
 export default function MyAPIsPage() {
-  const [apis, setApis] = useState<APIEndpoint[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [testResults, setTestResults] = useState<Record<string, { status: 'success' | 'error' | 'loading', message?: string }>>({});
 
-  // Current SAGE API endpoints
-  useEffect(() => {
-    const currentAPIs: APIEndpoint[] = [
-      // Channel Search APIs
-      {
-        path: '/api/channels/search',
-        method: 'GET',
-        description: 'Search and discover YouTube trading channels with relevance scoring',
-        parameters: [
-          { name: 'q', type: 'string', required: true, description: 'Search query for trading educators' }
-        ],
-        response_example: {
-          success: true,
-          data: [{ title: 'Trading Academy', relevanceScore: 95, subscribers: '250K' }],
-          meta: { totalResults: 1, searchQuery: 'trading academy' }
-        },
-        status: 'working',
-        authentication: false,
-        last_updated: '2025-01-29',
-        category: 'channel_search'
+  // Mock API documentation data for UI development
+  const apis: APIEndpoint[] = [
+    // Channel Search APIs
+    {
+      path: '/api/channels/search',
+      method: 'GET',
+      description: 'Search and discover YouTube trading channels with relevance scoring',
+      parameters: [
+        { name: 'q', type: 'string', required: true, description: 'Search query for trading educators' }
+      ],
+      response_example: {
+        success: true,
+        data: [{ title: 'Trading Academy', relevanceScore: 95, subscribers: '250K' }],
+        meta: { totalResults: 1, searchQuery: 'trading academy' }
       },
+      status: 'working',
+      authentication: false,
+      last_updated: '2025-01-29',
+      category: 'channel_search'
+    },
 
-      // Channel Management APIs
-      {
-        path: '/api/channels/subscribe',
-        method: 'POST',
-        description: 'Subscribe to a YouTube channel for automated tracking',
-        parameters: [
-          { name: 'channelId', type: 'string', required: true, description: 'YouTube channel ID' },
-          { name: 'settings', type: 'object', required: false, description: 'Tracking preferences' }
-        ],
-        response_example: {
-          success: true,
-          data: { channelId: 'UC123', subscribed: true },
-          message: 'Successfully subscribed to channel'
-        },
-        status: 'working',
-        authentication: true,
-        last_updated: '2025-01-29',
-        category: 'channel_management'
+    // Channel Management APIs
+    {
+      path: '/api/channels/subscribe',
+      method: 'POST',
+      description: 'Subscribe to a YouTube channel for automated tracking',
+      parameters: [
+        { name: 'channelId', type: 'string', required: true, description: 'YouTube channel ID' },
+        { name: 'settings', type: 'object', required: false, description: 'Tracking preferences' }
+      ],
+      response_example: {
+        success: true,
+        data: { channelId: 'UC123', subscribed: true },
+        message: 'Successfully subscribed to channel'
       },
-      {
-        path: '/api/channels/subscribe?channelId=UC123',
-        method: 'DELETE',
-        description: 'Unsubscribe from a channel',
-        parameters: [
-          { name: 'channelId', type: 'string', required: true, description: 'YouTube channel ID' }
-        ],
-        response_example: {
-          success: true,
-          message: 'Successfully unsubscribed from channel'
-        },
-        status: 'working',
-        authentication: true,
-        last_updated: '2025-01-29',
-        category: 'channel_management'
+      status: 'working',
+      authentication: true,
+      last_updated: '2025-01-29',
+      category: 'channel_management'
+    },
+    {
+      path: '/api/channels/subscribe?channelId=UC123',
+      method: 'DELETE',
+      description: 'Unsubscribe from a channel',
+      parameters: [
+        { name: 'channelId', type: 'string', required: true, description: 'YouTube channel ID' }
+      ],
+      response_example: {
+        success: true,
+        message: 'Successfully unsubscribed from channel'
       },
-      {
-        path: '/api/channels/subscribe',
-        method: 'PUT',
-        description: 'Update channel subscription preferences (favorites, notifications)',
-        parameters: [
-          { name: 'channelId', type: 'string', required: true, description: 'YouTube channel ID' },
-          { name: 'settings', type: 'object', required: true, description: 'Updated preferences' }
-        ],
-        response_example: {
-          success: true,
-          message: 'Subscription preferences updated'
-        },
-        status: 'working',
-        authentication: true,
-        last_updated: '2025-01-29',
-        category: 'channel_management'
+      status: 'working',
+      authentication: true,
+      last_updated: '2025-01-29',
+      category: 'channel_management'
+    },
+    {
+      path: '/api/channels/subscribe',
+      method: 'PUT',
+      description: 'Update channel subscription preferences (favorites, notifications)',
+      parameters: [
+        { name: 'channelId', type: 'string', required: true, description: 'YouTube channel ID' },
+        { name: 'settings', type: 'object', required: true, description: 'Updated preferences' }
+      ],
+      response_example: {
+        success: true,
+        message: 'Subscription preferences updated'
       },
+      status: 'working',
+      authentication: true,
+      last_updated: '2025-01-29',
+      category: 'channel_management'
+    },
 
-      // User Channels APIs
-      {
-        path: '/api/user/channels',
-        method: 'GET',
-        description: 'Get all user subscribed channels and favorites',
-        parameters: [
-          { name: 'stats', type: 'boolean', required: false, description: 'Include detailed stats' }
-        ],
-        response_example: {
-          success: true,
-          data: {
-            subscriptions: [{ title: 'Trading Academy', isFavorite: true, analysisCount: 12 }],
-            summary: { totalSubscribed: 2, favoritesCount: 1 }
-          }
-        },
-        status: 'working',
-        authentication: true,
-        last_updated: '2025-01-29',
-        category: 'user_channels'
+    // User Channels APIs
+    {
+      path: '/api/user/channels',
+      method: 'GET',
+      description: 'Get all user subscribed channels and favorites',
+      parameters: [
+        { name: 'stats', type: 'boolean', required: false, description: 'Include detailed stats' }
+      ],
+      response_example: {
+        success: true,
+        data: {
+          subscriptions: [{ title: 'Trading Academy', isFavorite: true, analysisCount: 12 }],
+          summary: { totalSubscribed: 2, favoritesCount: 1 }
+        }
       },
+      status: 'working',
+      authentication: true,
+      last_updated: '2025-01-29',
+      category: 'user_channels'
+    },
 
-      // Authentication APIs (provided by Stack Auth)
-      {
-        path: '/handler/[...stack]',
-        method: 'ALL',
-        description: 'Stack Auth authentication handlers',
-        status: 'working',
-        authentication: false,
-        last_updated: '2025-01-15',
-        category: 'auth'
-      }
-    ];
-
-    setApis(currentAPIs);
-  }, []);
+    // Authentication APIs (provided by Stack Auth)
+    {
+      path: '/handler/[...stack]',
+      method: 'ALL',
+      description: 'Stack Auth authentication handlers',
+      status: 'working',
+      authentication: false,
+      last_updated: '2025-01-15',
+      category: 'auth'
+    }
+  ];
 
   const categories = [
     { id: 'all', name: 'All APIs', count: apis.length },

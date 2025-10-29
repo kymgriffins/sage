@@ -36,42 +36,59 @@ export function ChannelDiscovery() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ChannelSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [userSubscriptions, setUserSubscriptions] = useState<Set<string>>(new Set());
+  const [userSubscriptions, setUserSubscriptions] = useState<Set<string>>(new Set(['UC123', 'UC456']));
 
-  // Load user's subscribed channels
-  useEffect(() => {
-    if (user) {
-      // TODO: Load from API/database
-      loadUserSubscriptions();
-    }
-  }, [user]);
-
-  const loadUserSubscriptions = async () => {
-    try {
-      // Mock data - replace with actual API call
-      setUserSubscriptions(new Set(['UC123', 'UC456']));
-    } catch (error) {
-      console.error('Failed to load subscriptions:', error);
-    }
-  };
-
-  // Mock channel data - replace with YouTube API search
+  // Mock channel data for UI development
   const mockChannels: YouTubeChannel[] = [
     {
-      id: 'UCqK_GSMbpiV8spMlbzpv8Bw', // Trading Educators
+      id: 'UCqK_GSMbpiV8spMlbzpv8Bw',
       snippet: {
         channelId: 'UCqK_GSMbpiV8spMlbzpv8Bw',
         title: 'Trading Educators Academy',
-        description: 'Professional trading education with real strategies and market analysis.',
+        description: 'Professional trading education with real strategies and market analysis. Daily live sessions and comprehensive courses.',
         thumbnails: {
-          default: { url: '/api/placeholder/88/88' },
-          medium: { url: '/api/placeholder/240/240' }
+          default: { url: 'https://via.placeholder.com/88x88/ccffcc/000000?text=TEA' },
+          medium: { url: 'https://via.placeholder.com/240x240/ccffcc/000000?text=TEA' }
         }
       },
       statistics: {
-        subscriberCount: '156000',
-        videoCount: '245',
-        viewCount: '23400000'
+        subscriberCount: '256000',
+        videoCount: '342',
+        viewCount: '34000000'
+      }
+    },
+    {
+      id: 'UCVeW9qkBjo3zosnqUbG7CFw',
+      snippet: {
+        channelId: 'UCVeW9qkBjo3zosnqUbG7CFw',
+        title: 'The Trading Channel',
+        description: 'Advanced trading strategies and market analysis. Live trading sessions and educational content for all skill levels.',
+        thumbnails: {
+          default: { url: 'https://via.placeholder.com/88x88/ffcccc/000000?text=TTC' },
+          medium: { url: 'https://via.placeholder.com/240x240/ffcccc/000000?text=TTC' }
+        }
+      },
+      statistics: {
+        subscriberCount: '890000',
+        videoCount: '1250',
+        viewCount: '125000000'
+      }
+    },
+    {
+      id: 'UCI8X7tqLk-UZ0YNYI5qW8w',
+      snippet: {
+        channelId: 'UCI8X7tqLk-UZ0YNYI5qW8w',
+        title: 'ICT Mentor',
+        description: 'Cutting-edge inner circle trader concepts and methodologies. Master the markets with institutional trading approaches.',
+        thumbnails: {
+          default: { url: 'https://via.placeholder.com/88x88/ffccaa/000000?text=ICT' },
+          medium: { url: 'https://via.placeholder.com/240x240/ffccaa/000000?text=ICT' }
+        }
+      },
+      statistics: {
+        subscriberCount: '456000',
+        videoCount: '289',
+        viewCount: '78800000'
       }
     }
   ];
@@ -80,11 +97,9 @@ export function ChannelDiscovery() {
     if (!query.trim()) return;
 
     setLoading(true);
-    try {
-      // TODO: Implement YouTube API search
-      // const results = await searchYouTubeChannels(query);
 
-      // Mock results for now
+    // Simulate API call delay
+    setTimeout(() => {
       const results = mockChannels
         .filter(channel =>
           channel.snippet.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -93,48 +108,38 @@ export function ChannelDiscovery() {
         .map(channel => ({
           ...channel,
           isSubscribed: userSubscriptions.has(channel.snippet.channelId),
-          isFavorite: false, // TODO: Check favorites from API
-          relevanceScore: 0.9 // TODO: Calculate based on trading relevance
-        }));
+          isFavorite: false,
+          relevanceScore: Math.random() * 100
+        }))
+        .sort((a, b) => b.relevanceScore - a.relevanceScore);
 
       setSearchResults(results);
-    } catch (error) {
-      console.error('Search failed:', error);
-    } finally {
       setLoading(false);
-    }
+    }, 500);
   };
 
   const toggleSubscription = async (channelId: string) => {
     if (!user) return;
 
-    try {
-      // TODO: Implement actual API call
-      if (userSubscriptions.has(channelId)) {
-        // Unsubscribe
-        setUserSubscriptions(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(channelId);
-          return newSet;
-        });
-        // await unsubscribeChannel(channelId);
+    // Simulate API call
+    setUserSubscriptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(channelId)) {
+        newSet.delete(channelId);
       } else {
-        // Subscribe
-        setUserSubscriptions(prev => new Set(prev).add(channelId));
-        // await subscribeChannel(channelId);
+        newSet.add(channelId);
       }
+      return newSet;
+    });
 
-      // Update search results
-      setSearchResults(prev =>
-        prev.map(result =>
-          result.snippet.channelId === channelId
-            ? { ...result, isSubscribed: !result.isSubscribed }
-            : result
-        )
-      );
-    } catch (error) {
-      console.error('Subscription update failed:', error);
-    }
+    // Update search results
+    setSearchResults(prev =>
+      prev.map(result =>
+        result.snippet.channelId === channelId
+          ? { ...result, isSubscribed: !result.isSubscribed }
+          : result
+      )
+    );
   };
 
   const formatCount = (count: string) => {

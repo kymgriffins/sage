@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth, useUserPermissions, useSubscription } from "@/lib/auth";
 import { ChannelDiscovery } from "@/components/channel-discovery";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { db } from "@/lib/db";
-import { eq, desc, count, sql } from "drizzle-orm";
-import { channelSubscriptions, streams, channels, userAnalytics } from "@/lib/schema";
 
 interface TrackedChannel {
   id: string;
@@ -42,146 +39,53 @@ export default function DashboardPage() {
   const permissions = useUserPermissions();
   const subscription = useSubscription();
   const [activeTab, setActiveTab] = useState("overview");
-  const [trackedChannels, setTrackedChannels] = useState<TrackedChannel[]>([]);
-  const [recentStreams, setRecentStreams] = useState<RecentStream[]>([]);
-  const [analytics, setAnalytics] = useState<DashboardAnalytics>({
-    totalStreams: 0,
-    totalInsights: 0,
-    averageAccuracy: 0,
-    favoriteChannels: 0
-  });
-  const [loading, setLoading] = useState(true);
 
-  // Load dashboard data
-  useEffect(() => {
-    if (user) {
-      loadDashboardData();
+  // Mock data for UI development
+  const trackedChannels: TrackedChannel[] = [
+    {
+      id: "1",
+      youtubeChannelId: "UCqK_GSMbpiV8spMlbzpv8Bw",
+      title: "Trading Educators Academy",
+      subscriberCount: 256000,
+      lastAnalyzed: "2024-10-29T10:00:00Z",
+      analysisCount: 12,
+      favorite: true
+    },
+    {
+      id: "2",
+      youtubeChannelId: "UCVeW9qkBjo3zosnqUbG7CFw",
+      title: "The Trading Channel",
+      subscriberCount: 890000,
+      lastAnalyzed: "2024-10-28T15:30:00Z",
+      analysisCount: 8,
+      favorite: false
     }
-  }, [user]);
+  ];
 
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-
-      // Load tracked channels
-      const subscriptions = await db
-        .select({
-          id: channelSubscriptions.id,
-          youtubeChannelId: channels.youtubeChannelId,
-          title: channels.channelTitle,
-          subscriberCount: channels.subscriberCount,
-          favorite: channelSubscriptions.isFavorite,
-          subscribedAt: channelSubscriptions.subscribedAt,
-        })
-        .from(channelSubscriptions)
-        .innerJoin(channels, eq(channelSubscriptions.channelId, channels.id))
-        .where(eq(channelSubscriptions.userId, user!.id));
-
-      // Get recent streams and analysis counts for each channel
-      const channelsWithStats = await Promise.all(
-        subscriptions.map(async (sub) => {
-          const streamCountResult = await db
-            .select({ count: sql<number>`count(*)` })
-            .from(streams)
-            .where(sql`${streams.userId} = ${user!.id} AND ${streams.channelId} = ${sub.id}`);
-
-          const lastAnalyzedResult = await db
-            .select({ completedAt: streams.processingCompletedAt })
-            .from(streams)
-            .where(sql`${streams.userId} = ${user!.id} AND ${streams.channelId} = ${sub.id} AND ${streams.status} = 'completed'`)
-            .orderBy(desc(streams.processingCompletedAt))
-            .limit(1);
-
-          return {
-            id: sub.id,
-            youtubeChannelId: sub.youtubeChannelId,
-            title: sub.title,
-            subscriberCount: sub.subscriberCount || 0,
-            lastAnalyzed: lastAnalyzedResult[0]?.completedAt?.toISOString() || (sub.subscribedAt?.toISOString() || new Date().toISOString()),
-            analysisCount: streamCountResult[0]?.count || 0,
-            favorite: sub.favorite || false,
-          };
-        })
-      );
-
-      setTrackedChannels(channelsWithStats);
-
-      // Load recent streams
-      const recentStreamsData = await db
-        .select({
-          id: streams.id,
-          title: streams.title,
-          channelTitle: channels.channelTitle,
-          status: streams.status,
-          processingStartedAt: streams.processingStartedAt,
-          processingCompletedAt: streams.processingCompletedAt,
-        })
-        .from(streams)
-        .innerJoin(channels, eq(streams.channelId, channels.id))
-        .where(eq(streams.userId, user!.id))
-        .orderBy(desc(streams.createdAt))
-        .limit(10);
-
-      const processedStreams: RecentStream[] = recentStreamsData.map(stream => ({
-        id: stream.id,
-        title: stream.title || 'Untitled Stream',
-        channelTitle: stream.channelTitle,
-        status: stream.status as "completed" | "processing" | "failed",
-        processingTime: stream.processingCompletedAt && stream.processingStartedAt
-          ? `${Math.round((stream.processingCompletedAt.getTime() - stream.processingStartedAt.getTime()) / 1000)}s`
-          : stream.processingStartedAt
-          ? `${Math.round((Date.now() - stream.processingStartedAt.getTime()) / 1000)}s`
-          : undefined,
-        insights: Math.floor(Math.random() * 20) + 1, // Placeholder - replace with actual insight count
-      }));
-
-      setRecentStreams(processedStreams);
-
-      // Calculate analytics
-      const totalStreamsResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(streams)
-        .where(eq(streams.userId, user!.id));
-
-      // Get total insights from user analytics
-      const totalInsightsResult = await db
-        .select({ insights: userAnalytics.insights })
-        .from(userAnalytics)
-        .where(eq(userAnalytics.userId, user!.id));
-
-      // Calculate average accuracy from completed analyses
-      const completedAnalysesResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(streams)
-        .where(eq(streams.userId, user!.id))
-        .where(eq(streams.status, 'completed'));
-
-      const totalFavorites = subscriptions.filter(sub => sub.favorite).length;
-
-      // Calculate insights count
-      let insightsCount = 0;
-      totalInsightsResult.forEach((item: any) => {
-        if (item.insights && typeof item.insights === 'object') {
-          const insights = item.insights as any;
-          if (insights.totalTrades) insightsCount += insights.totalTrades;
-        }
-      });
-
-      setAnalytics({
-        totalStreams: totalStreamsResult[0]?.count || 0,
-        totalInsights: insightsCount || processedStreams.length * 8, // fallback estimate
-        averageAccuracy: completedAnalysesResult[0]?.count > 0 ? 92 + Math.random() * 8 : 0,
-        favoriteChannels: totalFavorites,
-      });
-
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error);
-      // Fallback to empty state
-      setTrackedChannels([]);
-      setRecentStreams([]);
-    } finally {
-      setLoading(false);
+  const recentStreams: RecentStream[] = [
+    {
+      id: "1",
+      title: "Market Structure Breakdown - October 29",
+      channelTitle: "Trading Educators Academy",
+      status: "completed",
+      processingTime: "45s",
+      insights: 7
+    },
+    {
+      id: "2",
+      title: "Live Session: Scalping Strategies",
+      channelTitle: "ICT Mentor",
+      status: "processing",
+      processingTime: "32s",
+      insights: undefined
     }
+  ];
+
+  const analytics: DashboardAnalytics = {
+    totalStreams: 156,
+    totalInsights: 1234,
+    averageAccuracy: 94.2,
+    favoriteChannels: 2
   };
 
   return (
@@ -292,7 +196,7 @@ export default function DashboardPage() {
                           {channel.favorite && <span className="text-yellow-400">⭐</span>}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {(parseInt(channel.subscriberCount) / 1000).toFixed(0)}K subscribers • {channel.analysisCount} analyses
+                          {(channel.subscriberCount / 1000).toFixed(0)}K subscribers • {channel.analysisCount} analyses
                         </p>
                       </div>
                       <Badge variant="outline" className="text-xs">
@@ -326,7 +230,7 @@ export default function DashboardPage() {
                     <div>
                       <h3 className="font-semibold text-foreground mb-1">{channel.title}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {(parseInt(channel.subscriberCount) / 1000).toFixed(0)}K subscribers
+                        {(channel.subscriberCount / 1000).toFixed(0)}K subscribers
                       </p>
                     </div>
                     {channel.favorite && <span className="text-yellow-400 text-xl">⭐</span>}
