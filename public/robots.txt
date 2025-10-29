@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Block access to admin areas
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /api/
+
+# Allow crawling of public content
+Allow: /pricing
+Allow: /demo
+
+# Sitemap
+Sitemap: https://sage-ai.com/sitemap.xml

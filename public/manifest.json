@@ -1,0 +1,49 @@
+{
+  "name": "SAGE - AI Trading Stream Analysis",
+  "short_name": "SAGE AI",
+  "description": "Extract trading insights from YouTube streams with AI. Get strategy analysis, trade detection, and performance metrics in seconds.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-US",
+  "categories": ["finance", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "48x48 72x72 96x96 128x128 256x256",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "SAGE AI Trading Analysis Dashboard"
+    }
+  ],
+  "features": [
+    "Cross Platform",
+    "Fast",
+    "Works Offline"
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}
