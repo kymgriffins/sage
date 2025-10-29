@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,12 +17,18 @@ interface YouTubeChannel {
     thumbnails: {
       default: { url: string };
       medium: { url: string };
+      high: { url: string };
     };
   };
   statistics: {
     subscriberCount: string;
     videoCount: string;
     viewCount: string;
+  };
+  searchMeta?: {
+    isPoweredByYouTube: boolean;
+    totalResults: number;
+    mode: string;
   };
 }
 
@@ -40,62 +45,7 @@ export function ChannelDiscovery() {
   const [searchResults, setSearchResults] = useState<ChannelSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [userSubscriptions, setUserSubscriptions] = useState<Set<string>>(new Set(['UC123', 'UC456']));
-  const [searchMode, setSearchMode] = useState<'auto' | 'mock' | 'api'>('auto'); // 'auto', 'mock', or 'api'
-
-  // Mock channel data for UI development
-  const mockChannels: YouTubeChannel[] = [
-    {
-      id: 'UCqK_GSMbpiV8spMlbzpv8Bw',
-      snippet: {
-        channelId: 'UCqK_GSMbpiV8spMlbzpv8Bw',
-        title: 'Trading Educators Academy',
-        description: 'Professional trading education with real strategies and market analysis. Daily live sessions and comprehensive courses.',
-        thumbnails: {
-          default: { url: 'https://via.placeholder.com/88x88/ccffcc/000000?text=TEA' },
-          medium: { url: 'https://via.placeholder.com/240x240/ccffcc/000000?text=TEA' }
-        }
-      },
-      statistics: {
-        subscriberCount: '256000',
-        videoCount: '342',
-        viewCount: '34000000'
-      }
-    },
-    {
-      id: 'UCVeW9qkBjo3zosnqUbG7CFw',
-      snippet: {
-        channelId: 'UCVeW9qkBjo3zosnqUbG7CFw',
-        title: 'The Trading Channel',
-        description: 'Advanced trading strategies and market analysis. Live trading sessions and educational content for all skill levels.',
-        thumbnails: {
-          default: { url: 'https://via.placeholder.com/88x88/ffcccc/000000?text=TTC' },
-          medium: { url: 'https://via.placeholder.com/240x240/ffcccc/000000?text=TTC' }
-        }
-      },
-      statistics: {
-        subscriberCount: '890000',
-        videoCount: '1250',
-        viewCount: '125000000'
-      }
-    },
-    {
-      id: 'UCI8X7tqLk-UZ0YNYI5qW8w',
-      snippet: {
-        channelId: 'UCI8X7tqLk-UZ0YNYI5qW8w',
-        title: 'ICT Mentor',
-        description: 'Cutting-edge inner circle trader concepts and methodologies. Master the markets with institutional trading approaches.',
-        thumbnails: {
-          default: { url: 'https://via.placeholder.com/88x88/ffccaa/000000?text=ICT' },
-          medium: { url: 'https://via.placeholder.com/240x240/ffccaa/000000?text=ICT' }
-        }
-      },
-      statistics: {
-        subscriberCount: '456000',
-        videoCount: '289',
-        viewCount: '78800000'
-      }
-    }
-  ];
+  const [searchMode, setSearchMode] = useState<'auto' | 'mock' | 'api'>('auto');
 
   const searchChannels = async (query: string) => {
     if (!query.trim()) {
@@ -118,7 +68,6 @@ export function ChannelDiscovery() {
 
     setLoading(true);
 
-    // Show loading notification
     toast({
       title: "Searching...",
       description: `Looking for trading channels matching "${query}"`,
@@ -132,16 +81,14 @@ export function ChannelDiscovery() {
         modeParam = '&mode=mock';
       } else if (searchMode === 'api') {
         modeParam = '&mode=api';
-      } // 'auto' mode doesn't need a parameter
+      }
 
-      // Call real YouTube API through our backend
       const response = await fetch(`/api/channels/search?q=${encodeURIComponent(query)}${modeParam}`);
       const data = await response.json();
 
       if (!response.ok) {
         console.error('Search failed:', data.error);
 
-        // Handle specific error types
         if (data.details && data.details.includes('YouTube API key')) {
           toast({
             title: "YouTube API not configured",
@@ -183,22 +130,31 @@ export function ChannelDiscovery() {
         },
         isSubscribed: userSubscriptions.has(channel.snippet.channelId),
         isFavorite: false,
-        relevanceScore: channel.relevanceScore || 0,
-        // Add additional fields that might be useful for UI
+        relevanceScore: channel.relevanceScore || 50,
         searchMeta: {
           isPoweredByYouTube: data.meta.poweredByYouTube,
-          totalResults: data.meta.totalResults
+          totalResults: data.meta.totalResults,
+          mode: data.meta.mode
         }
       }));
 
       setSearchResults(results);
 
-      // Success notification
+      // Success notification with mode info
       if (results.length > 0) {
-        const modeText = searchMode === 'mock' ? 'demo' : searchMode === 'api' ? 'YouTube API' : 'auto';
+        const modeInfo: Record<string, string> = {
+          'mock': 'demo data',
+          'api': 'YouTube API',
+          'auto': data.meta.poweredByYouTube ? 'YouTube API' : 'demo data',
+          'auto_mock_fallback': 'demo data (auto fallback)',
+          'error_fallback': 'demo data (error fallback)'
+        };
+
+        const modeText = modeInfo[data.meta.mode] || 'search';
+
         toast({
           title: "Search successful!",
-          description: `Found ${results.length} trading channel${results.length === 1 ? '' : 's'} using ${modeText} mode`,
+          description: `Found ${results.length} channel${results.length === 1 ? '' : 's'} using ${modeText}`,
           variant: "success"
         });
       } else {
@@ -211,8 +167,6 @@ export function ChannelDiscovery() {
 
     } catch (error) {
       console.error('Search error:', error);
-
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 
       toast({
         title: "Network error",
@@ -236,23 +190,19 @@ export function ChannelDiscovery() {
       return;
     }
 
-    // Check if we're trying to follow a channel
     const currentlySubscribed = userSubscriptions.has(channelId);
     const channelName = searchResults.find(ch => ch.snippet.channelId === channelId)?.snippet.title || 'Unknown Channel';
 
     try {
-      // Show loading state notification
       toast({
         title: currentlySubscribed ? "Unfollowing..." : "Following...",
         description: `${currentlySubscribed ? 'Removing' : 'Adding'} ${channelName}`,
         variant: "info"
       });
 
-      // TODO: Replace with real API call when backend is ready
-      // Simulate API delay for realistic feedback
+      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      // Simulate API call (would be replaced with real API in production)
       setUserSubscriptions(prev => {
         const newSet = new Set(prev);
         if (currentlySubscribed) {
@@ -263,7 +213,6 @@ export function ChannelDiscovery() {
         return newSet;
       });
 
-      // Update search results to reflect the change
       setSearchResults(prev =>
         prev.map(result =>
           result.snippet.channelId === channelId
@@ -272,7 +221,6 @@ export function ChannelDiscovery() {
         )
       );
 
-      // Success notification
       toast({
         title: currentlySubscribed ? "Channel unfollowed" : "Channel followed!",
         description: `${channelName} ${currentlySubscribed ? 'removed from' : 'added to'} your tracked channels`,
@@ -293,7 +241,6 @@ export function ChannelDiscovery() {
   const handleSearchModeChange = (newMode: 'auto' | 'mock' | 'api') => {
     setSearchMode(newMode);
 
-    // Show confirmation of mode change
     const modeDescriptions = {
       auto: "Automatically uses YouTube API if available, falls back to mock data",
       mock: "Always uses demo/mock data without calling YouTube API",
@@ -306,7 +253,6 @@ export function ChannelDiscovery() {
       variant: "info"
     });
 
-    // Clear previous search results when mode changes
     setSearchResults([]);
     setSearchQuery("");
   };
@@ -429,9 +375,16 @@ export function ChannelDiscovery() {
               />
 
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-foreground truncate">
-                  {channel.snippet.title}
-                </h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-lg font-semibold text-foreground truncate">
+                    {channel.snippet.title}
+                  </h3>
+                  {channel.searchMeta && !channel.searchMeta.isPoweredByYouTube && (
+                    <Badge variant="secondary" className="text-xs">
+                      Demo Data
+                    </Badge>
+                  )}
+                </div>
 
                 <p className="text-muted-foreground text-sm line-clamp-2 mb-2">
                   {channel.snippet.description}
@@ -475,7 +428,7 @@ export function ChannelDiscovery() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {/* TODO: Open tracking settings */}}
+                    onClick={() => {/* TODO: Open tracking settings */ }}
                   >
                     ⚙️ Settings
                   </Button>
