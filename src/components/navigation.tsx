@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AuthButton } from "@/components/auth-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Home,
   Package,
@@ -12,7 +14,10 @@ import {
   BarChart3,
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  User,
+  Menu,
+  X
 } from "lucide-react";
 
 export function Navigation() {
@@ -52,12 +57,11 @@ export function Navigation() {
       <div className="flex h-16 items-center px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 mr-6">
-          <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-cyan-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">SAGE</span>
+          <div className="relative">
+            <div className="w-3 h-3 bg-cyan-400 rounded-full animate-ping" />
+            <span className="absolute top-0 left-0 w-3 h-3 bg-cyan-400 rounded-full"></span>
           </div>
-          {!isCollapsed && (
-            <span className="font-semibold text-foreground">SAGE Ai</span>
-          )}
+          <span className="text-xl font-light text-foreground dark:text-white tracking-tight">SAGE</span>
         </Link>
 
         {/* Navigation Links */}
@@ -95,19 +99,17 @@ export function Navigation() {
           })}
         </div>
 
-        {/* Collapse Toggle */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="ml-auto text-muted-foreground hover:text-foreground"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
-            <ChevronLeft className="w-4 h-4" />
-          )}
-        </Button>
+        {/* Right Side - User Account & Controls */}
+        <div className="flex items-center gap-2 ml-auto">
+          <Link href="/demo" className="text-muted-foreground hover:text-foreground transition-colors text-sm hidden sm:inline">
+            Demo
+          </Link>
+          <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+            Pricing →
+          </Link>
+          <ThemeToggle />
+          <AuthButton />
+        </div>
       </div>
     </nav>
   );
