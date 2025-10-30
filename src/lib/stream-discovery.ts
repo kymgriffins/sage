@@ -136,6 +136,10 @@ export async function discoverAllUserStreams() {
 
     for (const { userId } of usersWithSubscriptions) {
       try {
+        if (!userId) {
+          console.log('Skipping user with null userId');
+          continue;
+        }
         const result = await discoverStreamsForUser(userId);
         totalProcessedChannels += result.processedChannels;
         totalNewStreams += result.newStreams;

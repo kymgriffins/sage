@@ -208,6 +208,11 @@ export async function processQueuedStreams(batchSize: number = 10): Promise<{ pr
 
     for (const queueItem of queuedStreams) {
       try {
+        if (!queueItem.streamId) {
+          console.log(`Skipping queue item ${queueItem.id} with null streamId`);
+          continue;
+        }
+
         // Mark as processing
         await db.update(processingQueue)
           .set({

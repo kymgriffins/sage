@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 import { Loader2, RefreshCw, Play } from "lucide-react";
 
 interface TrackedChannel {
@@ -49,6 +50,7 @@ export default function DashboardPage() {
   const permissions = useUserPermissions();
   const subscription = useSubscription();
   const { toast } = useToast();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [trackedChannels, setTrackedChannels] = useState<TrackedChannel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,6 +151,8 @@ export default function DashboardPage() {
       neutral: 0
     }
   });
+
+
 
   useEffect(() => {
     if (user) {
@@ -321,6 +325,8 @@ export default function DashboardPage() {
       setProcessingStatus(prev => ({ ...prev, isProcessing: false }));
     }
   };
+
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -677,8 +683,8 @@ export default function DashboardPage() {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="flex-1">
-                          View Analyses
+                        <Button size="sm" variant="outline" className="flex-1" onClick={() => router.push(`/dashboard/channels/${channel.youtubeChannelId}/tutelage`)}>
+                          View Tutelage
                         </Button>
                         <Button size="sm" variant="outline">
                           ⚙️ Settings
