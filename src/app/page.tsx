@@ -51,9 +51,21 @@
 
 import { ThemeToggle } from '@/components/theme-toggle'
 import { AuthButton } from '@/components/auth-button'
+import { useScrollReveal } from '@/hooks/use-scroll-reveal'
 import Link from 'next/link'
 
 export default function Home() {
+  // Scroll reveal hooks for different sections
+  const heroReveal = useScrollReveal({ direction: 'up', delay: 0.2 })
+  const featuresReveal = useScrollReveal({ direction: 'up', delay: 0.1, threshold: 0.2 })
+  const howItWorksHeaderReveal = useScrollReveal({ direction: 'up', delay: 0.2, threshold: 0.3 })
+  const step1Reveal = useScrollReveal({ direction: 'left', delay: 0.3, threshold: 0.3 })
+  const step2Reveal = useScrollReveal({ direction: 'right', delay: 0.5, threshold: 0.3 })
+  const step3Reveal = useScrollReveal({ direction: 'left', delay: 0.7, threshold: 0.3 })
+  const step4Reveal = useScrollReveal({ direction: 'right', delay: 0.9, threshold: 0.3 })
+  const socialProofReveal = useScrollReveal({ direction: 'up', delay: 0.2, threshold: 0.2 })
+  const pricingReveal = useScrollReveal({ direction: 'up', delay: 0.2, threshold: 0.2 })
+
   return (
     <main className="min-h-screen bg-background">
       {/* Animated gradient orb background */}
@@ -70,7 +82,7 @@ export default function Home() {
 
 
         {/* Hero */}
-        <div className="py-20 lg:py-32 text-center">
+        <div ref={heroReveal.ref} style={heroReveal.style} className="py-20 lg:py-32 text-center">
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 backdrop-blur-sm mb-8">
             <div className="w-2 h-2 bg-cyan-400 rounded-full mr-2"></div>
             <span className="text-sm font-medium text-foreground dark:text-white/70">AI-POWERED TRADING INTELLIGENCE</span>
@@ -156,7 +168,7 @@ export default function Home() {
         </div>
 
         {/* Features Grid */}
-        <div className="py-20">
+        <div ref={featuresReveal.ref} style={featuresReveal.style} className="py-20">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
               {
@@ -391,7 +403,7 @@ export default function Home() {
         </div>
 
         {/* Social Proof */}
-        <div className="py-20">
+        <div ref={socialProofReveal.ref} style={socialProofReveal.style} className="py-20">
           <div className="max-w-6xl mx-auto text-center">
             <h2 className="text-2xl lg:text-3xl font-black text-foreground dark:text-white mb-12">
               Trusted by Professional Traders
