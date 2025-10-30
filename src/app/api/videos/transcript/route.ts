@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stackServerApp } from '@/stack/server';
-import { getVideoCaptions } from '@/lib/youtube';
+import { getVideoCaptions, getYouTubeTranscriptUnofficial } from '@/lib/youtube';
 
 /**
  * GET /api/videos/transcript?videoId=VIDEO_ID - Get video transcript and log to console
