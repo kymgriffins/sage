@@ -1,7 +1,7 @@
 # YouTube Sage MVP Roadmap
 
 ## Overview
-YouTube Sage is a trading intelligence platform that allows users to discover, follow, and get automated analysis of trading education streams from YouTube channels.
+YouTube Sage is the ultimate competitive platform for trading education streamers. It transforms the trading education space into a meritocratic ranking system where traders are judged by their actual market performance, content quality, and follower impact. **It's the dick measuring contest for traders** - where followers get unbiased data to compare who's truly the best.
 
 ## MVP Features (Phase 1)
 
@@ -38,27 +38,52 @@ YouTube Sage is a trading intelligence platform that allows users to discover, f
 - [ ] Performance metrics across channels
 - [ ] Real-time processing status updates
 
-#### 4. Processing Management
+#### 4. Competitive Ranking System
+- [ ] **🏆 Trader Leaderboards**: Rank by performance, accuracy, follower growth
+- [ ] **📊 Reality Check Metrics**: Claimed win-rate vs actual results
+- [ ] **🤥 BS Detection**: Algorithm flags unprovable claims
+- [ ] **🔍 Fact Checking**: Automated verification of trading strategies
+- [ ] **🏅 Hall of Shame**: Traders with repeated market timing failures
+- [ ] **🎯 Egg on Face Index**: Public score for obviously wrong predictions
+
+#### 5. Processing Management
 - [ ] Processing queue dashboard for users
 - [ ] Processing priority settings (live streams get highest priority)
 - [ ] Rate limiting and quota management
 - [ ] Error handling and retry logic for failed analyses
 
 ### 📋 MVP Success Criteria
-- Users can search and follow trading channels
-- **Primary Goal: Automated analysis of streams from followed channels appears in dashboard**
-- Basic trade detection works on sample streams
-- Dashboard shows processed content with insights
-- Free tier: 3 streams/month, Pro: 50/month working
+- **🏆 COMPETITIVE RANKING SYSTEM: Traders ranked by performance, insights, follower growth**
+- **🐔 EGG ON FACE PREVENTION: Obvious failures get called out, winner takes all gets questioned**
+- Users can search and compare trading educators head-to-head
+- **Primary Goal: Data-driven comparison replaces hype and marketing**
+- Comprehensive channel analytics and performance metrics
+- Dashboard shows actual results vs promised outcomes
+- **🎯-by-Market Reality Check**: Claims vs real trading performance
 
-### 🚀 Post-MVP Features (Phase 2+)
-- Advanced analytics with charts and trends
-- Export capabilities (PDF reports, CSV data)
-- Real-time live stream analysis
-- API access for enterprise users
-- Custom analysis templates
-- Multi-channel comparison tools
-- Automated updates when traders post new content
+### 🚀 Post-MVP Features (Phase 2+) - **The Dick Measuring Contests Begin**
+
+#### Competitive Features
+- **🥇 Hall of Fame vs 🏅 Hall of Shame**: Separate leaderboards for winners and losers
+- **🤝 Head-to-Head Battles**: Direct trader comparison dashboards
+- **📈 Performance Streaks**: Win/loss tracking over time periods
+- **🎯 Prediction Accuracy Scoring**: Market calls vs outcomes
+- **💰 Profitability Rankings**: Based on claimed vs actual results
+- **📊 User Vote Weights**: Community moderation of rankings
+
+#### Advanced Analytics
+- **🐔 Egg on Face Tracker**: Automated detection of wrong predictions
+- **🤥 BS Meter**: Flags impossible or unprovable claims
+- **🎪 Performance Streaks Dashboard**: Winners never quit, losers do
+- **🏆 Trader Championships**: Seasonal competitions
+- **📱 Mobile Rankings App**: Check your favorites on the go
+
+#### Community Features
+- **🗳️ Trader Elections**: User-voted rankings
+- **💬 Discussion Forums**: "Why did XYZ get called out?"
+- **🏷️ Trader Tags**: "Reliable", "Hype Train", "True Believer"
+- **📈 Growth Trackers**: Measure influence over time
+- **🎪 Reality TV**: Live tracking of trader predictions
 
 ### 🛠 Technical Debt & Improvements
 - Add comprehensive error handling and logging
