@@ -31,68 +31,95 @@ interface ChannelInfo {
   viewCount: number;
 }
 
-const VideoCard = ({ video }: { video: VideoItem }) => (
-  <Card className="p-4 bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
-    <div className="flex items-start gap-4">
-      {/* Video Thumbnail */}
-      <div className="relative flex-shrink-0">
-        <img
-          src={video.thumbnailUrl}
-          alt={video.title}
-          className="w-32 h-24 object-cover rounded-lg"
-        />
-        <div className="absolute inset-0 bg-black/20 rounded-lg pointer-events-none" />
-        <button className="absolute inset-0 flex items-center justify-center group">
-          <div className="w-8 h-8 bg-black/75 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <Play className="w-4 h-4 text-white ml-0.5" />
-          </div>
-        </button>
-        {video.isLive && (
-          <Badge variant="destructive" className="absolute top-2 right-2 text-xs">
-            LIVE
-          </Badge>
-        )}
-      </div>
+const VideoCard = ({ video }: { video: VideoItem }) => {
+  const handleGetTranscript = async () => {
+    try {
+      console.log(`🤖 Requesting AI transcript for video: ${video.youtubeId}`);
+      const response = await fetch(`/api/videos/transcript?videoId=${video.youtubeId}`);
+      const data = await response.json();
 
-      {/* Video Info */}
-      <div className="flex-1 min-w-0 space-y-2">
-        <h4 className="font-semibold text-foreground line-clamp-2 hover:text-blue-400 cursor-pointer">
-          {video.title}
-        </h4>
+      if (data.success) {
+        console.log(`✅ AI Transcript received for "${video.title}":`);
+        console.log(data.transcript);
+      } else {
+        console.log(`❌ No transcript available for "${video.title}":`, data.error);
+      }
+    } catch (error) {
+      console.error('❌ Failed to get transcript:', error);
+    }
+  };
 
-        {video.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {video.description}
-          </p>
-        )}
-
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>
-            📅 {new Date(video.publishedAt).toLocaleDateString()}
-          </span>
-          {video.daysSincePublished !== null && video.daysSincePublished < 7 && (
-            <Badge variant="secondary" className="text-xs">
-              Last {video.daysSincePublished} days
+  return (
+    <Card className="p-4 bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
+      <div className="flex items-start gap-4">
+        {/* Video Thumbnail */}
+        <div className="relative flex-shrink-0">
+          <img
+            src={video.thumbnailUrl}
+            alt={video.title}
+            className="w-32 h-24 object-cover rounded-lg"
+          />
+          <div className="absolute inset-0 bg-black/20 rounded-lg pointer-events-none" />
+          <button className="absolute inset-0 flex items-center justify-center group">
+            <div className="w-8 h-8 bg-black/75 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <Play className="w-4 h-4 text-white ml-0.5" />
+            </div>
+          </button>
+          {video.isLive && (
+            <Badge variant="destructive" className="absolute top-2 right-2 text-xs">
+              LIVE
             </Badge>
           )}
         </div>
-      </div>
 
-      {/* Action Button */}
-      <div className="flex-shrink-0">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => window.open(`https://www.youtube.com/watch?v=${video.youtubeId}`, '_blank')}
-          className="flex items-center gap-2"
-        >
-          <ExternalLink className="w-3 h-3" />
-          Watch
-        </Button>
+        {/* Video Info */}
+        <div className="flex-1 min-w-0 space-y-2">
+          <h4 className="font-semibold text-foreground line-clamp-2 hover:text-blue-400 cursor-pointer">
+            {video.title}
+          </h4>
+
+          {video.description && (
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {video.description}
+            </p>
+          )}
+
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span>
+              📅 {new Date(video.publishedAt).toLocaleDateString()}
+            </span>
+            {video.daysSincePublished !== null && video.daysSincePublished < 7 && (
+              <Badge variant="secondary" className="text-xs">
+                Last {video.daysSincePublished} days
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex-shrink-0 flex flex-col gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => window.open(`https://www.youtube.com/watch?v=${video.youtubeId}`, '_blank')}
+            className="flex items-center gap-2"
+          >
+            <ExternalLink className="w-3 h-3" />
+            Watch
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleGetTranscript}
+            className="flex items-center gap-2"
+          >
+            🤖 AI Transcript
+          </Button>
+        </div>
       </div>
-    </div>
-  </Card>
-);
+    </Card>
+  );
+};
 
 export default function ChannelTutelagePage() {
   const params = useParams();
