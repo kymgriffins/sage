@@ -67,25 +67,7 @@ export default function Home() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]" />
 
       <div className="relative z-10 container mx-auto px-6">
-        {/* Minimal nav */}
-        <nav className="py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 bg-cyan-400 rounded-full animate-ping" />
-              <span className="text-xl font-light text-foreground dark:text-white tracking-tight">SAGE</span>
-            </div>
-            <div className="flex items-center space-x-6">
-              <Link href="/demo" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Demo
-              </Link>
-              <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Pricing →
-              </Link>
-              <AuthButton />
-              <ThemeToggle />
-            </div>
-          </div>
-        </nav>
+
 
         {/* Hero */}
         <div className="py-20 lg:py-32 text-center">
@@ -95,12 +77,12 @@ export default function Home() {
           </div>
 
           <h1 className="text-6xl lg:text-8xl font-black tracking-tight mb-8 text-foreground dark:text-white">
-            Analyze Trading <span className="text-cyan-400">Streams</span>
+            Rank the <span className="text-cyan-400">Traders</span>
           </h1>
 
           <p className="text-xl lg:text-3xl text-muted-foreground dark:text-white/60 mb-12 max-w-4xl mx-auto leading-relaxed">
-            Extract insights from live trading videos. Get strategy analysis, trade detection,
-            and performance metrics in <span className="text-foreground dark:text-white font-semibold">seconds</span>.
+            No more hype, no more BS. Compare trading educators head-to-head with verifiable data.
+            See who's actually winning in the <span className="text-foreground dark:text-white font-semibold">markets</span>.
           </p>
 
           {/* CTA */}
@@ -154,18 +136,19 @@ export default function Home() {
                 <div className="text-muted-foreground dark:text-white/40 text-sm font-mono">sage-analysis-terminal</div>
               </div>
 
-              {/* Code Preview */}
-              <div className="p-6 sm:p-8 font-mono text-xs sm:text-sm text-foreground dark:text-white">
-                <div className="text-cyan-400">const analysis = await sage.analyzeStream(videoURL)</div>
-                <div className="text-purple-400 ml-4">// Processing stream...</div>
-                <div className="text-green-400 ml-4">// ✓ 8 trades detected</div>
-                <div className="text-green-400 ml-4">// ✓ Performance metrics calculated</div>
+            {/* Code Preview */}
+            <div className="p-6 sm:p-8 font-mono text-xs sm:text-sm text-foreground dark:text-white">
+                <div className="text-cyan-400">const rankings = await sage.rankTraders(['ICT', 'SMB', 'PDArray'])</div>
+                <div className="text-purple-400 ml-4">// Analyzing trader performance...</div>
+                <div className="text-red-400 ml-4">// 🤥 ICT: Egg on face detected - wrong $NQ call</div>
+                <div className="text-green-400 ml-4">// 🏆 SMB: Accurate predictions verified</div>
+                <div className="text-green-400 ml-4">// 📊 Rankings calculated</div>
                 <br />
-                <div className="text-purple-400">analysis.summary</div>
+                <div className="text-purple-400">rankings.summary</div>
                 <div className="text-foreground dark:text-white ml-4">{"{"}</div>
-                <div className="text-foreground dark:text-white ml-8">winRate: <span className="text-cyan-400">0.75</span>,</div>
-                <div className="text-foreground dark:text-white ml-8">trades: <span className="text-cyan-400">8</span>,</div>
-                <div className="text-foreground dark:text-white ml-8">confidence: <span className="text-green-400">94%</span></div>
+                <div className="text-foreground dark:text-white ml-8">winner: <span className="text-cyan-400">"SMB"</span>,</div>
+                <div className="text-foreground dark:text-white ml-8">accuracy: <span className="text-green-400">87%</span>,</div>
+                <div className="text-foreground dark:text-white ml-8">bsMeter: <span className="text-red-400">HIGH</span></div>
                 <div className="text-foreground dark:text-white ml-4">{"}"}</div>
               </div>
             </div>
@@ -177,21 +160,21 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
               {
-                title: "Instant Analysis",
-                desc: "Upload any trading stream and get insights in under 60 seconds",
-                stat: "60s",
-                statLabel: "Analysis Time",
+                title: "Head-to-Head Ranking",
+                desc: "Compare trading educators with verifiable performance data and market outcomes",
+                stat: "🏆",
+                statLabel: "Real Rankings",
                 icon: (
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 )
               },
               {
-                title: "High Accuracy",
-                desc: "94% accuracy in detecting trades and extracting key insights",
-                stat: "94%",
-                statLabel: "Accuracy Rate",
+                title: "Truth Serum Mode",
+                desc: "Cut through marketing hype to reveal actual trading performance and claims vs reality",
+                stat: "🤥",
+                statLabel: "BS Detector",
                 icon: (
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -199,10 +182,10 @@ export default function Home() {
                 )
               },
               {
-                title: "Proven Results",
-                desc: "Used by 1,200+ traders to improve their strategy and performance",
+                title: "Winner Takes All",
+                desc: "1,200+ traders now know who's actually winning vs who's just talking big",
                 stat: "1.2K+",
-                statLabel: "Active Users",
+                statLabel: "Reality Checks",
                 icon: (
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -287,35 +270,35 @@ export default function Home() {
                   {[
                     {
                       step: "01",
-                      title: "Upload Stream",
-                      desc: "Paste any YouTube trading stream URL or upload video files",
-                      icon: "🎥",
+                      title: "Select Traders",
+                      desc: "Choose trading educators you follow or want to compare head-to-head",
+                      icon: "🎯",
                       gradient: "from-cyan-500 to-blue-500",
-                      features: ["YouTube Integration", "Direct Upload", "Batch Processing"]
+                      features: ["Channel Discovery", "Track Favorites", "Comparison Groups"]
                     },
                     {
                       step: "02",
-                      title: "AI Processing",
-                      desc: "Advanced neural networks transcribe and analyze trading patterns in real-time",
-                      icon: "🧠",
+                      title: "Monitor Performance",
+                      desc: "Track predictions, accuracy rates, and market calls across channels",
+                      icon: "📈",
                       gradient: "from-purple-500 to-pink-500",
-                      features: ["Real-time Analysis", "Pattern Recognition", "Confidence Scoring"]
+                      features: ["Real-time Tracking", "Accuracy Scores", "Win/Loss Ratios"]
                     },
                     {
                       step: "03",
-                      title: "Extract Insights",
-                      desc: "Get precise trade signals, performance metrics, and strategy breakdowns",
-                      icon: "💎",
+                      title: "Truth Serum Mode",
+                      desc: "Cut through the hype to reveal who's actually profitable vs marketing claims",
+                      icon: "🤥",
                       gradient: "from-blue-500 to-cyan-500",
-                      features: ["Trade Detection", "Risk Analysis", "Performance Metrics"]
+                      features: ["BS Detection", "Reality Checks", "Claim Verification"]
                     },
                     {
                       step: "04",
-                      title: "Review Results",
-                      desc: "Interactive dashboards with visual analytics and export capabilities",
-                      icon: "📊",
+                      title: "Winner Takes All",
+                      desc: "See the rankings and decide whose strategies you follow - based on facts, not hype",
+                      icon: "🏆",
                       gradient: "from-green-500 to-emerald-500",
-                      features: ["Live Dashboard", "Export Reports", "API Access"]
+                      features: ["Live Leaderboards", "Hall of Shame", "Data-Driven Rankings"]
                     }
                   ].map((item, index) => (
                     <div
