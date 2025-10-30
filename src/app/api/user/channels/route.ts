@@ -36,36 +36,52 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const includeStats = searchParams.get('stats') === 'true';
 
-    // Fetch user's subscriptions from database
+    // Fetch user's subscriptions from database with full channel profile data
     const userSubscriptions = await db.select({
+      // Subscription data
       id: channelSubscriptions.id,
       channelId: channelSubscriptions.channelId,
-      youtubeChannelId: channels.youtubeChannelId,
-      title: channels.channelTitle,
-      description: channels.channelDescription,
-      subscribers: channels.subscriberCount,
-      thumbnail: channels.profileImageUrl,
       subscribedAt: channelSubscriptions.subscribedAt,
       isFavorite: channelSubscriptions.isFavorite,
       preferences: channelSubscriptions.trackingPreferences,
+
+      // Channel profile data
+      youtubeChannelId: channels.youtubeChannelId,
+      title: channels.channelTitle,
+      description: channels.channelDescription,
+      customUrl: channels.customUrl,
+      profileImageUrl: channels.profileImageUrl,
+      country: channels.country,
+      viewCount: channels.viewCount,
+      subscriberCount: channels.subscriberCount,
+      videoCount: channels.videoCount,
+      isVerified: channels.isVerified,
+      lastUpdated: channels.lastUpdated,
+      createdAt: channels.createdAt,
     })
     .from(channelSubscriptions)
     .innerJoin(channels, eq(channelSubscriptions.channelId, channels.id))
     .where(eq(channelSubscriptions.userId, user.id))
     .orderBy(desc(channelSubscriptions.isFavorite), desc(channelSubscriptions.subscribedAt));
 
-    // Transform subscriptions to match API response format
+    // Transform subscriptions to match API response format with full profile data
     const subscriptions = userSubscriptions.map(sub => ({
       id: sub.id,
       channelId: sub.channelId,
       youtubeChannelId: sub.youtubeChannelId,
       title: sub.title || 'Unknown Channel',
       description: sub.description || 'Trading education channel',
-      subscribers: sub.subscribers?.toString() || '0',
-      thumbnail: sub.thumbnail || null,
+      customUrl: sub.customUrl,
+      country: sub.country,
+      subscribers: sub.subscriberCount?.toString() || '0',
+      viewCount: sub.viewCount?.toString() || '0',
+      videoCount: sub.videoCount?.toString() || '0',
+      thumbnail: sub.profileImageUrl || null,
+      isVerified: sub.isVerified,
       subscribedAt: sub.subscribedAt ? sub.subscribedAt.toISOString() : new Date().toISOString(),
       isFavorite: sub.isFavorite,
       lastActivity: sub.subscribedAt ? sub.subscribedAt.toISOString() : new Date().toISOString(), // TODO: Update when we track last activity
+      lastUpdated: sub.lastUpdated ? sub.lastUpdated.toISOString() : null,
       analysisCount: 0, // TODO: Implement real analytics
       status: "active", // TODO: Add subscription status support
       preferences: sub.preferences || {}
@@ -87,8 +103,23 @@ export async function GET(request: NextRequest) {
       }));
     }
 
-    // Already sorted by the database query (favorites first, then by subscription date)
-    const sortedSubscriptions = enrichedSubscriptions;
+    // Sort by favorites first, then by view count (most views = highest rank), then by subscription date
+    const sortedSubscriptions = enrichedSubscriptions.sort((a, b) => {
+      // Favorites first
+      if (a.isFavorite && !b.isFavorite) return -1;
+      if (!a.isFavorite && b.isFavorite) return 1;
+
+      // Then by view count (highest first)
+      const aViews = parseInt(a.viewCount) || 0;
+      const bViews = parseInt(b.viewCount) || 0;
+      if (aViews !== bViews) return bViews - aViews;
+
+      // Finally by subscription date (newest first)
+      const aDate = new Date(a.subscribedAt).getTime();
+      const bDate = new Date(b.subscribedAt).getTime();
+      return bDate - aDate;
+    });
+
     const favoriteCount = sortedSubscriptions.filter(s => s.isFavorite).length;
 
     return NextResponse.json({

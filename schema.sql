@@ -1,17 +1,7 @@
--- Users & authentication
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email TEXT UNIQUE NOT NULL,
-  name TEXT,
-  avatar_url TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
 -- Subscription tiers: free, pro, enterprise
 CREATE TABLE subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID,
   tier TEXT NOT NULL DEFAULT 'free', -- free, pro, enterprise
   stripe_customer_id TEXT UNIQUE,
   stripe_subscription_id TEXT UNIQUE,
@@ -43,7 +33,7 @@ CREATE TABLE channels (
 -- User channel subscriptions (which channels user tracks)
 CREATE TABLE channel_subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID,
   channel_id UUID REFERENCES channels(id) ON DELETE CASCADE,
   tracking_preferences JSONB DEFAULT '{
     "content_types": ["live", "uploads"],
@@ -66,7 +56,7 @@ CREATE TABLE channel_subscriptions (
 -- YouTube streams to analyze
 CREATE TABLE streams (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID,
   channel_id UUID REFERENCES channels(id) ON DELETE CASCADE,
   youtube_url TEXT NOT NULL,
   youtube_id TEXT UNIQUE NOT NULL,
@@ -89,7 +79,7 @@ CREATE TABLE streams (
 CREATE TABLE processing_queue (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   stream_id UUID REFERENCES streams(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID,
   priority INTEGER DEFAULT 1, -- 1-3 (3=highest for live streams)
   status TEXT DEFAULT 'queued', -- queued, processing, completed, failed
   queued_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -102,7 +92,7 @@ CREATE TABLE processing_queue (
 -- Rate limiting table
 CREATE TABLE rate_limits (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID,
   action_type TEXT NOT NULL, -- 'stream_analysis', 'channel_subscription', 'api_call'
   count INTEGER DEFAULT 1,
   window_start TIMESTAMP WITH_TIME_ZONE DEFAULT NOW(),
@@ -112,7 +102,7 @@ CREATE TABLE rate_limits (
 -- User analytics and insights
 CREATE TABLE user_analytics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID,
   channel_id UUID REFERENCES channels(id) ON DELETE CASCADE,
   analysis_type TEXT NOT NULL, -- 'trade_detection', 'strategy_analysis', 'performance_metrics'
   insights JSONB, -- Store aggregated insights

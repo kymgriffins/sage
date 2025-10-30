@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-hooks";
 import { useToast } from "@/hooks/use-toast";
 
 interface YouTubeChannel {

@@ -10,10 +10,17 @@ const sql = neon(process.env.DATABASE_URL!);
 export const db = drizzle(sql, { schema });
 
 // Export schema types for type safety
-export type NewUser = typeof schema.users.$inferInsert;
-export type User = typeof schema.users.$inferSelect;
 export type NewChannel = typeof schema.channels.$inferInsert;
 export type Channel = typeof schema.channels.$inferSelect;
-export type NewSubscription = typeof schema.channelSubscriptions.$inferInsert;
-export type Subscription = typeof schema.channelSubscriptions.$inferSelect;
+export type NewChannelSubscription = typeof schema.channelSubscriptions.$inferInsert;
+export type ChannelSubscription = typeof schema.channelSubscriptions.$inferSelect;
+export type NewSubscription = typeof schema.subscriptions.$inferInsert;
+export type Subscription = typeof schema.subscriptions.$inferSelect;
 export type NewStream = typeof schema.streams.$inferInsert;
+export type Stream = typeof schema.streams.$inferSelect;
+export type NewProcessingQueue = typeof schema.processingQueue.$inferInsert;
+export type ProcessingQueue = typeof schema.processingQueue.$inferSelect;
+export type NewRateLimit = typeof schema.rateLimits.$inferInsert;
+export type RateLimit = typeof schema.rateLimits.$inferSelect;
+export type NewUserAnalytics = typeof schema.userAnalytics.$inferInsert;
+export type UserAnalytics = typeof schema.userAnalytics.$inferSelect;

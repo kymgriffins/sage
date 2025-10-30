@@ -2,20 +2,10 @@
 import { pgTable, uuid, text, timestamp, bigint, integer, boolean, jsonb, serial, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-// Users table
-export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  email: text('email').notNull().unique(),
-  name: text('name'),
-  avatarUrl: text('avatar_url'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
-});
-
 // Subscriptions table
 export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id'),
   tier: text('tier').default('free').notNull(), // free, pro, enterprise
   stripeCustomerId: text('stripe_customer_id').unique(),
   stripeSubscriptionId: text('stripe_subscription_id').unique(),
@@ -47,7 +37,7 @@ export const channels = pgTable('channels', {
 // Channel subscriptions table
 export const channelSubscriptions = pgTable('channel_subscriptions', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id'),
   channelId: uuid('channel_id').references(() => channels.id, { onDelete: 'cascade' }),
   trackingPreferences: jsonb('tracking_preferences').default({
     content_types: ["live", "uploads"],
@@ -71,7 +61,7 @@ export const channelSubscriptions = pgTable('channel_subscriptions', {
 // Streams table
 export const streams = pgTable('streams', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id'),
   channelId: uuid('channel_id').references(() => channels.id, { onDelete: 'cascade' }),
   youtubeUrl: text('youtube_url').notNull(),
   youtubeId: text('youtube_id').notNull().unique(),
@@ -94,7 +84,7 @@ export const streams = pgTable('streams', {
 export const processingQueue = pgTable('processing_queue', {
   id: uuid('id').defaultRandom().primaryKey(),
   streamId: uuid('stream_id').references(() => streams.id, { onDelete: 'cascade' }),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id'),
   priority: integer('priority').default(1), // 1-3 (3=highest for live streams)
   status: text('status').default('queued'), // queued, processing, completed, failed
   queuedAt: timestamp('queued_at', { withTimezone: true }).defaultNow(),
@@ -107,7 +97,7 @@ export const processingQueue = pgTable('processing_queue', {
 // Rate limiting table
 export const rateLimits = pgTable('rate_limits', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id'),
   actionType: text('action_type').notNull(), // 'stream_analysis', 'channel_subscription', 'api_call'
   count: integer('count').default(1),
   windowStart: timestamp('window_start', { withTimezone: true }).defaultNow(),
@@ -117,7 +107,7 @@ export const rateLimits = pgTable('rate_limits', {
 // User analytics and insights
 export const userAnalytics = pgTable('user_analytics', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id'),
   channelId: uuid('channel_id').references(() => channels.id, { onDelete: 'cascade' }),
   analysisType: text('analysis_type').notNull(), // 'trade_detection', 'strategy_analysis', 'performance_metrics'
   insights: jsonb('insights'), // Store aggregated insights
@@ -128,21 +118,6 @@ export const userAnalytics = pgTable('user_analytics', {
 });
 
 // Relations definitions
-export const usersRelations = relations(users, ({ many }) => ({
-  subscriptions: many(subscriptions),
-  channelSubscriptions: many(channelSubscriptions),
-  streams: many(streams),
-  rateLimits: many(rateLimits),
-  analytics: many(userAnalytics),
-}));
-
-export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
-  user: one(users, {
-    fields: [subscriptions.userId],
-    references: [users.id],
-  }),
-}));
-
 export const channelsRelations = relations(channels, ({ many }) => ({
   channelSubscriptions: many(channelSubscriptions),
   streams: many(streams),
@@ -150,10 +125,6 @@ export const channelsRelations = relations(channels, ({ many }) => ({
 }));
 
 export const channelSubscriptionsRelations = relations(channelSubscriptions, ({ one }) => ({
-  user: one(users, {
-    fields: [channelSubscriptions.userId],
-    references: [users.id],
-  }),
   channel: one(channels, {
     fields: [channelSubscriptions.channelId],
     references: [channels.id],
@@ -161,10 +132,6 @@ export const channelSubscriptionsRelations = relations(channelSubscriptions, ({ 
 }));
 
 export const streamsRelations = relations(streams, ({ one, many }) => ({
-  user: one(users, {
-    fields: [streams.userId],
-    references: [users.id],
-  }),
   channel: one(channels, {
     fields: [streams.channelId],
     references: [channels.id],
@@ -177,24 +144,9 @@ export const processingQueueRelations = relations(processingQueue, ({ one }) => 
     fields: [processingQueue.streamId],
     references: [streams.id],
   }),
-  user: one(users, {
-    fields: [processingQueue.userId],
-    references: [users.id],
-  }),
-}));
-
-export const rateLimitsRelations = relations(rateLimits, ({ one }) => ({
-  user: one(users, {
-    fields: [rateLimits.userId],
-    references: [users.id],
-  }),
 }));
 
 export const userAnalyticsRelations = relations(userAnalytics, ({ one }) => ({
-  user: one(users, {
-    fields: [userAnalytics.userId],
-    references: [users.id],
-  }),
   channel: one(channels, {
     fields: [userAnalytics.channelId],
     references: [channels.id],

@@ -1,496 +1,336 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { google } from 'googleapis';
 
-// ============================================================================
-// SEARCH LOGIC ORGANIZATION
-// ============================================================================
-
-// Trading-specific keywords and terms for better relevance scoring
-const TRADING_KEYWORDS = {
-  core: ['trading', 'trade', 'forex', 'fx', 'currency', 'stocks', 'equities', 'crypto', 'cryptocurrency', 'bitcoin', 'btc'],
-  analysis: ['analysis', 'technical analysis', 'price action', 'scalping', 'day trading', 'swing trading', 'market analysis'],
-  education: ['strategy', 'strategies', 'mentor', 'education', 'academy', 'school', 'course', 'tutorial'],
-  indicators: ['ict', 'smart money', 'institutional', 'volume', 'trend', 'pattern', 'chart', 'candle', 'support', 'resistance']
-};
-
-interface YouTubeSearchResponse {
-  items: Array<{
-    id: { channelId: string };
-    snippet: {
-      channelId: string;
-      title: string;
-      description: string;
-      thumbnails: {
-        default: { url: string };
-        medium: { url: string };
-        high: { url: string };
-      };
-      customUrl?: string;
-    };
-  }>;
-}
-
-interface YouTubeChannelResponse {
-  items: Array<{
-    id: string;
-    snippet: {
-      title: string;
-      description: string;
-      thumbnails: {
-        default: { url: string };
-        medium: { url: string };
-        high: { url: string };
-      };
-      customUrl?: string;
-    };
-    statistics: {
-      subscriberCount: string;
-      videoCount: string;
-      viewCount: string;
-    };
-  }>;
-}
-
-// ============================================================================
-// SEARCH LOGIC FUNCTIONS
-// ============================================================================
-
-/**
- * Calculate trading relevance score for a channel based on trading-related content
- */
-function calculateTradingRelevance(channel: any, query: string): number {
-  let score = 0;
-  const queryLower = query.toLowerCase();
-  const title = channel.snippet?.title?.toLowerCase() || '';
-  const description = channel.snippet?.description?.toLowerCase() || '';
-
-  // Exact query match in title (highest weight)
-  if (title.includes(queryLower)) {
-    score += 40;
-    if (title.startsWith(queryLower)) score += 20; // Exact match at start
-  }
-
-  // Trading keyword matching across different categories
-  let keywordMatches = 0;
-  const allKeywords = [
-    ...TRADING_KEYWORDS.core,
-    ...TRADING_KEYWORDS.analysis,
-    ...TRADING_KEYWORDS.education,
-    ...TRADING_KEYWORDS.indicators
-  ];
-
-  allKeywords.forEach(keyword => {
-    if (title.includes(keyword) || description.includes(keyword)) {
-      keywordMatches++;
-    }
-  });
-
-  // Score based on number of trading keyword matches
-  score += keywordMatches * 12;
-
-  // Subscriber count boost (credibility indicator)
-  const subscribers = parseInt(channel.statistics?.subscriberCount || '0');
-  if (subscribers > 1000000) score += 25;
-  else if (subscribers > 100000) score += 20;
-  else if (subscribers > 50000) score += 15;
-  else if (subscribers > 10000) score += 10;
-  else if (subscribers > 1000) score += 5;
-
-  // Video count boost (active channel indicator)
-  const videos = parseInt(channel.statistics?.videoCount || '0');
-  if (videos > 1000) score += 15;
-  else if (videos > 500) score += 10;
-  else if (videos > 100) score += 5;
-
-  return Math.min(score, 100); // Cap at 100
-}
-
-/**
- * Filter channels for trading relevance and add relevance scores
- */
-function filterAndScoreChannels(channels: any[], query: string): any[] {
-  return channels
-    .filter(channel => {
-      // Must have minimum reach and contain trading keywords
-      const subscribers = parseInt(channel.statistics?.subscriberCount || '0');
-      const hasMinimumReach = subscribers > 500;
-
-      const title = channel.snippet?.title?.toLowerCase() || '';
-      const description = channel.snippet?.description?.toLowerCase() || '';
-
-      // Check for trading keywords
-      const hasTradingContent = [...TRADING_KEYWORDS.core, ...TRADING_KEYWORDS.analysis]
-        .some(keyword => title.includes(keyword) || description.includes(keyword));
-
-      return hasMinimumReach && hasTradingContent;
-    })
-    .map(channel => ({
-      ...channel,
-      relevanceScore: calculateTradingRelevance(channel, query)
-    }))
-    .sort((a, b) => {
-      // Sort by subscriber count descending (most subscribers first)
-      const subscribersA = parseInt(a.statistics?.subscriberCount || '0');
-      const subscribersB = parseInt(b.statistics?.subscriberCount || '0');
-
-      // If subscriber counts are different, sort by subscribers
-      if (subscribersA !== subscribersB) {
-        return subscribersB - subscribersA; // Higher subscribers first
-      }
-
-      // If subscriber counts are the same, use relevance score as tiebreaker
-      return b.relevanceScore - a.relevanceScore;
-    })
-    .slice(0, 10); // Top 10 results
-}
-
-/**
- * Search YouTube for channels using the Data API
- */
-async function searchYouTubeChannels(query: string, apiKey: string): Promise<any[]> {
-  // Enhanced search query for better trading channel results
-  const enhancedQuery = `${query} trading forex crypto analysis strategy`;
-
-  // Step 1: Search for channels
-  const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=25&q=${encodeURIComponent(enhancedQuery)}&order=relevance&key=${apiKey}`;
-
-  const searchResponse = await fetch(searchUrl);
-  if (!searchResponse.ok) {
-    const errorData = await searchResponse.json();
-    throw new Error(`YouTube Search API: ${errorData.error?.message || 'Search failed'}`);
-  }
-
-  const searchData = await searchResponse.json();
-
-  if (!searchData.items?.length) {
-    return [];
-  }
-
-  // Step 2: Get detailed channel information
-  const channelIds = searchData.items.map((item: any) => item.id.channelId).join(',');
-
-  const channelsUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIds}&key=${apiKey}`;
-
-  const channelsResponse = await fetch(channelsUrl);
-  if (!channelsResponse.ok) {
-    const errorData = await channelsResponse.json();
-    throw new Error(`YouTube Channels API: ${errorData.error?.message || 'Channel details failed'}`);
-  }
-
-  const channelsData = await channelsResponse.json();
-
-  return channelsData.items || [];
-}
-
-// Mock data for demo mode - Top ICT Livestream Traders
-const mockChannels = [
-  // 1. Tanja Trades (Highest subscribers)
+// Mock data for when YouTube API is not available
+const MOCK_CHANNEL_DATA = [
   {
-    id: 'UC-TANJA-TRADES',
+    kind: "youtube#channel",
+    etag: "mock-etag-1",
+    id: "UCTovmBbgOEgi4iXqSH3IxjQ",
     snippet: {
-      channelId: 'UC-TANJA-TRADES',
-      title: 'Tanja Trades',
-      description: 'Elite ICT trader livestreams focusing on smart money concepts, institutional order flow, and advanced price action. Live analysis of forex markets with proven strategies.',
+      title: "Patrick Wieland",
+      description: "Professional trading education and live market analysis.",
+      customUrl: "@patrickwieland",
+      publishedAt: "2017-01-16T13:49:57Z",
       thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/e91e63/ffffff?text=TT' },
-        medium: { url: 'https://via.placeholder.com/240x240/e91e63/ffffff?text=TT' },
-        high: { url: 'https://via.placeholder.com/240x240/e91e63/ffffff?text=TT' }
-      }
+        default: { url: "https://yt3.ggpht.com/mock_thumb_1.jpg", width: 88, height: 88 },
+        medium: { url: "https://yt3.ggpht.com/mock_thumb_1.jpg", width: 240, height: 240 },
+        high: { url: "https://yt3.ggpht.com/mock_thumb_1.jpg", width: 800, height: 800 }
+      },
+      localized: {
+        title: "Patrick Wieland",
+        description: "Professional trading education and live market analysis."
+      },
+      country: "US"
     },
     statistics: {
-      subscriberCount: '1250000',
-      videoCount: '842',
-      viewCount: '180000000'
-    }
+      viewCount: "45861245",
+      subscriberCount: "459000",
+      hiddenSubscriberCount: false,
+      videoCount: "3283"
+    },
+    relevanceScore: 100
   },
-  // 2. ICT Inner Circle Trader
   {
-    id: 'UC-ict-inner-circle',
+    kind: "youtube#channel",
+    etag: "mock-etag-2",
+    id: "UChiJI6aZx9XflzWBg98p6TA",
     snippet: {
-      channelId: 'UC-ict-inner-circle',
-      title: 'ICT Inner Circle Trader',
-      description: 'Pure institutional trading methodology. Daily livestreams breaking down smart money movements, liquidity concepts, and manipulator tactics in forex markets.',
+      title: "Tanisha Garg",
+      description: "Certified Research Analyst providing stock market education.",
+      customUrl: "@tanishagarg101",
+      publishedAt: "2022-12-25T14:07:03Z",
       thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/9c27b0/ffffff?text=ICT' },
-        medium: { url: 'https://via.placeholder.com/240x240/9c27b0/ffffff?text=ICT' },
-        high: { url: 'https://via.placeholder.com/240x240/9c27b0/ffffff?text=ICT' }
-      }
+        default: { url: "https://yt3.ggpht.com/mock_thumb_2.jpg", width: 88, height: 88 },
+        medium: { url: "https://yt3.ggpht.com/mock_thumb_2.jpg", width: 240, height: 240 },
+        high: { url: "https://yt3.ggpht.com/mock_thumb_2.jpg", width: 800, height: 800 }
+      },
+      localized: {
+        title: "Tanisha Garg",
+        description: "Certified Research Analyst providing stock market education."
+      },
+      country: "IN"
     },
     statistics: {
-      subscriberCount: '980000',
-      videoCount: '1247',
-      viewCount: '250000000'
-    }
+      viewCount: "1033471",
+      subscriberCount: "117000",
+      hiddenSubscriberCount: false,
+      videoCount: "171"
+    },
+    relevanceScore: 85
   },
-  // 3. Tyler Trades
   {
-    id: 'UC-tyler-trades',
+    kind: "youtube#channel",
+    etag: "mock-etag-3",
+    id: "UCnuUPG2uJ3lO0FOfc8bZdAA",
     snippet: {
-      channelId: 'UC-tyler-trades',
-      title: 'Tyler Trades',
-      description: 'Advanced ICT concepts explained simply. Live sessions covering institutional supply/demand zones, optimal trade entry, and risk management strategies.',
+      title: "The Trade Bureau!",
+      description: "Educational content for trading and investing with live webinars.",
+      customUrl: "@thtradebureau",
+      publishedAt: "2021-04-18T06:51:57Z",
       thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/3f51b5/ffffff?text=TY' },
-        medium: { url: 'https://via.placeholder.com/240x240/3f51b5/ffffff?text=TY' },
-        high: { url: 'https://via.placeholder.com/240x240/3f51b5/ffffff?text=TY' }
+        default: { url: "https://yt3.ggpht.com/mock_thumb_3.jpg", width: 88, height: 88 },
+        medium: { url: "https://yt3.ggpht.com/mock_thumb_3.jpg", width: 240, height: 240 },
+        high: { url: "https://yt3.ggpht.com/mock_thumb_3.jpg", width: 800, height: 800 }
+      },
+      localized: {
+        title: "The Trade Bureau!",
+        description: "Educational content for trading and investing with live webinars."
       }
     },
     statistics: {
-      subscriberCount: '875000',
-      videoCount: '956',
-      viewCount: '145000000'
-    }
+      viewCount: "64140",
+      subscriberCount: "6480",
+      hiddenSubscriberCount: false,
+      videoCount: "123"
+    },
+    relevanceScore: 94
   },
-  // 4. Fx4Living
   {
-    id: 'UC-fx4living',
+    kind: "youtube#channel",
+    etag: "mock-etag-4",
+    id: "UCAu0F47nG0YNC-V2ZSDQnKg",
     snippet: {
-      channelId: 'UC-fx4living',
-      title: 'Fx4Living',
-      description: 'Professional ICT trading advocate. Focus on sustainable wealth creation through smart money concepts, live market analysis, and mentorship.',
+      title: "profesor forex",
+      description: "Free forex trading education and market analysis.",
+      customUrl: "@profesorforex",
+      publishedAt: "2024-03-26T09:46:05Z",
       thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/009688/ffffff?text=F4L' },
-        medium: { url: 'https://via.placeholder.com/240x240/009688/ffffff?text=F4L' },
-        high: { url: 'https://via.placeholder.com/240x240/009688/ffffff?text=F4L' }
-      }
+        default: { url: "https://yt3.ggpht.com/mock_thumb_4.jpg", width: 88, height: 88 },
+        medium: { url: "https://yt3.ggpht.com/mock_thumb_4.jpg", width: 240, height: 240 },
+        high: { url: "https://yt3.ggpht.com/mock_thumb_4.jpg", width: 800, height: 800 }
+      },
+      localized: {
+        title: "profesor forex",
+        description: "Free forex trading education and market analysis."
+      },
+      country: "ID"
     },
     statistics: {
-      subscriberCount: '756000',
-      videoCount: '634',
-      viewCount: '120000000'
-    }
+      viewCount: "16693",
+      subscriberCount: "1560",
+      hiddenSubscriberCount: false,
+      videoCount: "33"
+    },
+    relevanceScore: 29
   },
-  // 5. Smart Money Concepts
   {
-    id: 'UC-smart-money-concepts',
+    kind: "youtube#channel",
+    etag: "mock-etag-5",
+    id: "UCYlxOg6xN_pegDZf0APkS_A",
     snippet: {
-      channelId: 'UC-smart-money-concepts',
-      title: 'Smart Money Concepts',
-      description: 'Deep dive into ICT trading philosophy. Weekly livestreams dissecting institutional behavior, order flow analysis, and market structure shifts.',
+      title: "ChunkTraderFX🇲🇨",
+      description: "Trading education for forex and market analysis.",
+      customUrl: "@chunktraderfx",
+      publishedAt: "2022-06-30T05:10:08Z",
       thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/ff9800/000000?text=SMC' },
-        medium: { url: 'https://via.placeholder.com/240x240/ff9800/000000?text=SMC' },
-        high: { url: 'https://via.placeholder.com/240x240/ff9800/000000?text=SMC' }
-      }
+        default: { url: "https://yt3.ggpht.com/mock_thumb_5.jpg", width: 88, height: 88 },
+        medium: { url: "https://yt3.ggpht.com/mock_thumb_5.jpg", width: 240, height: 240 },
+        high: { url: "https://yt3.ggpht.com/mock_thumb_5.jpg", width: 800, height: 800 }
+      },
+      localized: {
+        title: "ChunkTraderFX🇲🇨",
+        description: "Trading education for forex and market analysis."
+      },
+      country: "ID"
     },
     statistics: {
-      subscriberCount: '683000',
-      videoCount: '892',
-      viewCount: '98000000'
-    }
-  },
-  // 6. Lord of Merchants
-  {
-    id: 'UC-lord-of-merchants',
-    snippet: {
-      channelId: 'UC-lord-of-merchants',
-      title: 'Lord of Merchants',
-      description: 'Master ICT trader sharing elite strategies. Daily market commentary focusing on institutional accumulation/distribution and liquidity grabs.',
-      thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/795548/ffffff?text=LOM' },
-        medium: { url: 'https://via.placeholder.com/240x240/795548/ffffff?text=LOM' },
-        high: { url: 'https://via.placeholder.com/240x240/795548/ffffff?text=LOM' }
-      }
+      viewCount: "8334",
+      subscriberCount: "775",
+      hiddenSubscriberCount: false,
+      videoCount: "45"
     },
-    statistics: {
-      subscriberCount: '542000',
-      videoCount: '721',
-      viewCount: '89000000'
-    }
-  },
-  // 7. Charmaine (ICT Trading)
-  {
-    id: 'UC-charmaine-ict',
-    snippet: {
-      channelId: 'UC-charmaine-ict',
-      title: 'Charmaine ICT Trading',
-      description: 'Female ICT perspective on trading markets. Focus on psychological aspects of institutional trading with live session breakdowns and strategy guides.',
-      thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/e91e63/ffffff?text=CH' },
-        medium: { url: 'https://via.placeholder.com/240x240/e91e63/ffffff?text=CH' },
-        high: { url: 'https://via.placeholder.com/240x240/e91e63/ffffff?text=CH' }
-      }
-    },
-    statistics: {
-      subscriberCount: '498000',
-      videoCount: '568',
-      viewCount: '76400000'
-    }
-  },
-  // 8. Institutional Order Flow
-  {
-    id: 'UC-institutional-order-flow',
-    snippet: {
-      channelId: 'UC-institutional-order-flow',
-      title: 'Institutional Order Flow',
-      description: 'Technical analysis through ICT lens. Live trading sessions analyzing institutional buying/selling behavior and smart money positioning.',
-      thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/607d8b/ffffff?text=IOF' },
-        medium: { url: 'https://via.placeholder.com/240x240/607d8b/ffffff?text=IOF' },
-        high: { url: 'https://via.placeholder.com/240x240/607d8b/ffffff?text=IOF' }
-      }
-    },
-    statistics: {
-      subscriberCount: '421000',
-      videoCount: '783',
-      viewCount: '67000000'
-    }
-  },
-  // 9. Liquidity Hunter
-  {
-    id: 'UC-liquidity-hunter',
-    snippet: {
-      channelId: 'UC-liquidity-hunter',
-      title: 'Liquidity Hunter',
-      description: 'ICT-focused trading strategies. Specializing in liquidity concepts, manipulation tactics, and institutional trading zones for consistent profits.',
-      thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/2196f3/ffffff?text=LH' },
-        medium: { url: 'https://via.placeholder.com/240x240/2196f3/ffffff?text=LH' },
-        high: { url: 'https://via.placeholder.com/240x240/2196f3/ffffff?text=LH' }
-      }
-    },
-    statistics: {
-      subscriberCount: '387000',
-      videoCount: '445',
-      viewCount: '58000000'
-    }
-  },
-  // 10. Market Structure Pro
-  {
-    id: 'UC-market-structure-pro',
-    snippet: {
-      channelId: 'UC-market-structure-pro',
-      title: 'Market Structure Pro',
-      description: 'Advanced ICT market structure analysis. Daily videos breaking down institutional shifts, supply/demand imbalances, and smart money movements.',
-      thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88/4caf50/ffffff?text=MSP' },
-        medium: { url: 'https://via.placeholder.com/240x240/4caf50/ffffff?text=MSP' },
-        high: { url: 'https://via.placeholder.com/240x240/4caf50/ffffff?text=MSP' }
-      }
-    },
-    statistics: {
-      subscriberCount: '356000',
-      videoCount: '687',
-      viewCount: '52000000'
-    }
+    relevanceScore: 60
   }
 ];
 
-// ============================================================================
-// MAIN API ENDPOINT
-// ============================================================================
-
+/**
+ * GET /api/channels/search - Search for YouTube channels
+ * Query params: q (search query), mode (auto|mock|api)
+ */
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const query = searchParams.get('q')?.trim();
-  const mode = searchParams.get('mode') || 'auto';
-
-  // Input validation
-  if (!query) {
-    return NextResponse.json(
-      { error: 'Search query is required' },
-      { status: 400 }
-    );
-  }
-
-  if (query.length < 2) {
-    return NextResponse.json(
-      { error: 'Search query must be at least 2 characters' },
-      { status: 400 }
-    );
-  }
-
   try {
-    // Mode handling - Mock mode
+    const { searchParams } = new URL(request.url);
+    const query = searchParams.get('q')?.trim();
+    const mode = searchParams.get('mode') || 'auto';
+
+    console.log(`Channel search request - query: "${query}", mode: ${mode}`);
+
+    if (!query) {
+      return NextResponse.json(
+        { error: 'Search query is required' },
+        { status: 400 }
+      );
+    }
+
+    if (query.length < 2) {
+      return NextResponse.json(
+        { error: 'Search query must be at least 2 characters long' },
+        { status: 400 }
+      );
+    }
+
+    let searchResults: any[] = [];
+    let searchMode = mode;
+    let poweredByYouTube = false;
+    let totalResults = 0;
+
+    // Determine search mode
     if (mode === 'mock') {
-      const filteredChannels = filterAndScoreChannels(mockChannels, query);
+      // Always use mock data
+      console.log('Using mock data mode');
+      const filteredMockData = MOCK_CHANNEL_DATA.filter(channel =>
+        channel.snippet.title.toLowerCase().includes(query.toLowerCase()) ||
+        channel.snippet.description.toLowerCase().includes(query.toLowerCase())
+      );
+      searchResults = filteredMockData.map(item => ({
+        ...item,
+        relevanceScore: Math.floor(Math.random() * 50) + 50 // Random relevance
+      }));
+      searchMode = 'mock';
+      totalResults = searchResults.length;
+    } else if (mode === 'api' || (mode === 'auto' && process.env.YOUTUBE_API_KEY)) {
+      // Try YouTube API
+      console.log('Attempting YouTube API search');
 
-      return NextResponse.json({
-        success: true,
-        data: filteredChannels,
-        meta: {
-          poweredByYouTube: false,
-          totalResults: filteredChannels.length,
-          mode: 'mock',
-          searchQuery: query,
-          topRelevanceScore: filteredChannels[0]?.relevanceScore || 0
+      if (!process.env.YOUTUBE_API_KEY) {
+        console.log('YouTube API key not configured, falling back to mock');
+        searchMode = mode === 'api' ? 'error_fallback' : 'auto_mock_fallback';
+        const filteredMockData = MOCK_CHANNEL_DATA.filter(channel =>
+          channel.snippet.title.toLowerCase().includes(query.toLowerCase()) ||
+          channel.snippet.description.toLowerCase().includes(query.toLowerCase())
+        );
+        searchResults = filteredMockData.map(item => ({
+          ...item,
+          relevanceScore: Math.floor(Math.random() * 50) + 50
+        }));
+        totalResults = searchResults.length;
+      } else {
+        try {
+          const youtube = google.youtube({
+            version: 'v3',
+            auth: process.env.YOUTUBE_API_KEY,
+          });
+
+          const searchResponse = await youtube.search.list({
+            part: ['snippet'],
+            q: query,
+            type: ['channel'],
+            maxResults: 10, // Can expand later
+            safeSearch: 'strict',
+            relevanceLanguage: 'en'
+          });
+
+          if (!searchResponse.data.items || searchResponse.data.items.length === 0) {
+            console.log('No channels found via YouTube API');
+            searchResults = [];
+            totalResults = 0;
+          } else {
+            // Get detailed channel info
+            const channelIds = searchResponse.data.items
+              .map(item => item.id?.channelId)
+              .filter((id): id is string => Boolean(id));
+
+            if (channelIds.length === 0) {
+              searchResults = [];
+              totalResults = 0;
+            } else {
+              const channelsResponse = await youtube.channels.list({
+                part: ['snippet', 'statistics'],
+                id: channelIds,
+                maxResults: channelIds.length,
+              });
+
+              searchResults = (channelsResponse.data.items || []).map((channel, index) => ({
+                kind: "youtube#channel",
+                etag: `api-${channel.id}-${Date.now()}`,
+                id: channel.id,
+                snippet: {
+                  channelId: channel.id,
+                  title: channel.snippet?.title || '',
+                  description: channel.snippet?.description || '',
+                  customUrl: channel.snippet?.customUrl,
+                  publishedAt: channel.snippet?.publishedAt,
+                  thumbnails: channel.snippet?.thumbnails || {
+                    default: { url: '', width: 88, height: 88 },
+                    medium: { url: '', width: 240, height: 240 },
+                    high: { url: '', width: 800, height: 800 }
+                  },
+                  localized: channel.snippet?.localized || {
+                    title: channel.snippet?.title || '',
+                    description: channel.snippet?.description || ''
+                  },
+                  country: channel.snippet?.country
+                },
+                statistics: {
+                  viewCount: channel.statistics?.viewCount || '0',
+                  subscriberCount: channel.statistics?.subscriberCount || '0',
+                  hiddenSubscriberCount: false,
+                  videoCount: channel.statistics?.videoCount || '0'
+                },
+                relevanceScore: 50
+              }));
+
+              totalResults = searchResults.length;
+              poweredByYouTube = true;
+              searchMode = 'api';
+            }
+          }
+        } catch (apiError: any) {
+          console.error('YouTube API error:', apiError?.message);
+          console.log('Falling back to mock data');
+
+          const filteredMockData = MOCK_CHANNEL_DATA.filter(channel =>
+            channel.snippet.title.toLowerCase().includes(query.toLowerCase()) ||
+            channel.snippet.description.toLowerCase().includes(query.toLowerCase())
+          );
+          searchResults = filteredMockData.map(item => ({
+            ...item,
+            relevanceScore: Math.floor(Math.random() * 50) + 50
+          }));
+          searchMode = 'error_fallback';
+          totalResults = searchResults.length;
         }
-      });
+      }
+    } else {
+      // Auto mode fallback to mock
+      console.log('Auto mode falling back to mock data (no API key)');
+      const filteredMockData = MOCK_CHANNEL_DATA.filter(channel =>
+        channel.snippet.title.toLowerCase().includes(query.toLowerCase()) ||
+        channel.snippet.description.toLowerCase().includes(query.toLowerCase())
+      );
+      searchResults = filteredMockData.map(item => ({
+        ...item,
+        relevanceScore: Math.floor(Math.random() * 50) + 50
+      }));
+      searchMode = 'auto_mock_fallback';
+      totalResults = searchResults.length;
     }
 
-    // Get API key and determine search strategy
-    const apiKey = process.env.YOUTUBE_API_KEY;
+    // Sort results by relevance score (highest first)
+    searchResults.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
 
-    // Mode validation
-    if (!apiKey && mode === 'api') {
-      return NextResponse.json({
-        success: false,
-        error: 'YouTube API key not configured. Set YOUTUBE_API_KEY in environment variables.',
-        details: 'API key required for real YouTube search. Try mock mode instead.',
-        meta: { mode: 'api_error' }
-      }, { status: 500 });
-    }
-
-    // Auto mode without API key falls back to mock
-    if (mode === 'auto' && !apiKey) {
-      const filteredChannels = filterAndScoreChannels(mockChannels, query);
-
-      return NextResponse.json({
-        success: true,
-        data: filteredChannels,
-        meta: {
-          poweredByYouTube: false,
-          totalResults: filteredChannels.length,
-          mode: 'auto_mock_fallback',
-          searchQuery: query,
-          note: 'API key not available, using demo data'
-        }
-      });
-    }
-
-    // Real YouTube search
-    if (!apiKey) {
-      throw new Error('No API key available for search');
-    }
-
-    const channels = await searchYouTubeChannels(query, apiKey);
-    const filteredChannels = filterAndScoreChannels(channels, query);
+    console.log(`Search completed: ${searchResults.length} results via ${searchMode}`);
 
     return NextResponse.json({
       success: true,
-      data: filteredChannels,
+      data: searchResults,
       meta: {
-        poweredByYouTube: true,
-        totalResults: filteredChannels.length,
-        mode: 'api',
+        totalResults,
         searchQuery: query,
-        enhancedQuery: true, // Used enhanced search terms
-        topRelevanceScore: filteredChannels[0]?.relevanceScore || 0
+        mode: searchMode,
+        poweredByYouTube,
+        enhancedQuery: true,
+        topRelevanceScore: searchResults[0]?.relevanceScore || 0,
+        searchedAt: new Date().toISOString()
       }
     });
 
-  } catch (error) {
-    console.error('Channel search API error:', error);
-
-    // Determine error type and provide appropriate fallback
-    const errorMessage = error instanceof Error ? error.message : 'Unknown search error';
-    const isApiError = errorMessage.includes('YouTube') || errorMessage.includes('API');
-
-    // Always provide fallback mock results on error
-    const fallbackChannels = filterAndScoreChannels(mockChannels, query)
-      .slice(0, 5); // Limit fallback results
-
-    return NextResponse.json({
-      success: false, // Mark as error but provide fallback data
-      data: fallbackChannels, // Still provide some results
-      error: errorMessage,
-      meta: {
-        poweredByYouTube: false,
-        totalResults: fallbackChannels.length,
-        mode: 'error_fallback',
-        searchQuery: query,
-        originalError: isApiError ? 'YouTube API unavailable' : 'Search processing error',
-        suggestion: isApiError ? 'Check API key or try mock mode' : 'Try simplifying your search'
-      }
-    }, { status: 500 }); // Return HTTP error status
+  } catch (error: any) {
+    console.error('Channel search error:', error);
+    return NextResponse.json(
+      { error: 'Failed to search channels', details: error?.message },
+      { status: 500 }
+    );
   }
 }
