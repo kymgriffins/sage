@@ -229,8 +229,8 @@ export default function MyAPIsPage() {
 
         {/* API List */}
         <div className="grid gap-4">
-          {filteredAPIs.map((api) => (
-            <Card key={api.path} className="p-6 bg-white/5 border-white/10">
+          {filteredAPIs.map((api, index) => (
+            <Card key={`${api.path}-${api.method}-${index}`} className="p-6 bg-white/5 border-white/10">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <Badge className={`${getMethodColor(api.method)} text-white text-xs px-2 py-1`}>
