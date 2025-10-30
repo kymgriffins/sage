@@ -9,10 +9,15 @@ const youtube = google.youtube({
   auth: process.env.YOUTUBE_API_KEY,
 });
 
-// Initialize OpenAI client (for Whisper transcription)
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI client (for Whisper transcription) - Lazy loaded
+const getOpenAIClient = () => {
+  if (!process.env.OPENAI_API_KEY) {
+    return null;
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+};
 
 // Types for YouTube API responses
 export interface YouTubeChannel {
@@ -216,6 +221,12 @@ export async function getYouTubeTranscriptUnofficial(videoId: string, languageCo
 async function getWhisperTranscript(videoId: string): Promise<string | null> {
   try {
     console.log(`🎙️ Attempting OpenAI Whisper transcription for: ${videoId}`);
+
+    const openai = getOpenAIClient();
+    if (!openai) {
+      console.log('⚠️ OpenAI API key not configured, skipping Whisper transcription');
+      return null;
+    }
 
     // Note: This would require downloading the video first, then sending to OpenAI
     // For now, we'll just return null as placeholder since video download is complex
