@@ -1,9 +1,17 @@
 import { google } from 'googleapis';
+import OpenAI from 'openai';
+import { Readable } from 'stream';
+import ytdl from 'ytdl-core';
 
 // Initialize YouTube API client
 const youtube = google.youtube({
   version: 'v3',
   auth: process.env.YOUTUBE_API_KEY,
+});
+
+// Initialize OpenAI client (for Whisper transcription)
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 // Types for YouTube API responses
@@ -249,4 +257,59 @@ export function getVideoType(video: YouTubeVideo): 'live' | 'upload' | 'short' {
   }
 
   return 'upload';
+}
+
+/**
+ * Get videos from a specific channel (used by stream-discovery)
+ */
+export async function getChannelVideos(channelId: string, maxResults: number = 25): Promise<YouTubeVideo[]> {
+  try {
+    const response = await youtube.search.list({
+      part: ['snippet'],
+      channelId: channelId,
+      order: 'date', // Most recent first
+      type: ['video'],
+      maxResults: maxResults,
+      publishedAfter: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Last 24 hours
+    });
+
+    if (!response.data.items) {
+      return [];
+    }
+
+    // Get detailed video info including statistics
+    const videoIds = response.data.items
+      .map(item => item.id?.videoId)
+      .filter((id): id is string => Boolean(id));
+
+    const videosResponse = await youtube.videos.list({
+      part: ['snippet', 'statistics', 'contentDetails', 'liveStreamingDetails'],
+      id: videoIds,
+      maxResults: videoIds.length,
+    });
+
+    return (videosResponse as any).data.items?.map((video: any) => ({
+      id: video.id!,
+      snippet: {
+        title: video.snippet?.title || '',
+        description: video.snippet?.description || '',
+        publishedAt: video.snippet?.publishedAt || '',
+        channelId: video.snippet?.channelId || '',
+        channelTitle: video.snippet?.channelTitle || '',
+        thumbnails: video.snippet?.thumbnails || {},
+      },
+      statistics: {
+        viewCount: parseInt(String(video.statistics?.viewCount || 0), 10),
+        likeCount: parseInt(String(video.statistics?.likeCount || 0), 10),
+      },
+      contentDetails: {
+        duration: video.contentDetails?.duration || '',
+        definition: video.contentDetails?.definition || 'sd',
+      },
+      liveStreamingDetails: video.liveStreamingDetails,
+    })) || [];
+  } catch (error) {
+    console.error('Error getting channel videos:', error);
+    throw new Error('Failed to get channel videos');
+  }
 }
