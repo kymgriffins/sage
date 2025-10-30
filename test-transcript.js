@@ -86,28 +86,40 @@ async function testAlternativeApproaches(videoId) {
 }
 
 async function testUnofficialMethod(videoId) {
-  console.log('\n🆕 TESTING UNOFFICIAL TRANSCRIPT API METHOD:');
-  console.log('🎯 This should work for Inner Circle Trader videos...');
+  console.log('\n🆕 TESTING youtube-transcript npm PACKAGE:');
+  console.log('🎯 Best chance for getting transcripts...');
 
   try {
-    // Import and test our new function
-    const { getYouTubeTranscriptUnofficial } = require('./src/lib/youtube.ts');
+    // Test the npm package directly first
+    console.log('📦 Testing youtube-transcript npm package directly...');
+    const { YoutubeTranscript } = require('youtube-transcript');
 
-    const transcript = await getYouTubeTranscriptUnofficial(videoId);
+    const transcript = await YoutubeTranscript.fetchTranscript(videoId);
 
-    if (transcript) {
-      console.log('🎉 UNOFFICIAL METHOD SUCCESS!');
-      console.log('📝 Transcript found:', transcript.length, 'characters');
-      console.log('📋 Sample:', transcript.substring(0, 200) + '...');
-      return transcript;
+    if (transcript && transcript.length > 0) {
+      console.log('🎉 NPM PACKAGE SUCCESS!');
+      console.log('📊 Segments:', transcript.length);
+      console.log('📝 Full transcript:');
+      const text = transcript.map((item) => item.text).join(' ');
+      console.log(text);
+      console.log('📋 Sample:', text.substring(0, 200) + '...');
+      return text;
     } else {
-      console.log('❌ Unofficial method also failed');
-      return null;
+      console.log('❌ npm package returned empty results');
+
+      // Test our library function as fallback
+      console.log('🔄 Testing our library wrapper...');
+      const { getYouTubeTranscriptUnofficial } = require('./src/lib/youtube.ts');
+      const altTranscript = await getYouTubeTranscriptUnofficial(videoId);
+      if (altTranscript) {
+        console.log('✅ Library wrapper succeeded!');
+        return altTranscript;
+      }
     }
   } catch (error) {
-    console.log('❌ Unofficial method error:', error.message);
-    return null;
+    console.log('❌ Unofficial methods failed:', error.message);
   }
+  return null;
 }
 
 async function main() {

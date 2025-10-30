@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
       console.log(`✅ SUCCESS: Transcription logged for video ${videoId}`);
       console.log(`🤖 AI TRANSCRIPTION AGENT: Complete\n`);
 
+      const method = transcript.includes('youtube-transcript') ? 'YouTube Transcript Package' : 'Fallback Method';
       return NextResponse.json({
         success: true,
         videoId,
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
         },
         message: 'Transcription logged to console',
         loggedBy: 'Free AI Agent',
-        method: 'YouTube Captions API'
+        method: method
       });
 
     } else {

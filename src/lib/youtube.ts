@@ -141,99 +141,82 @@ export async function getVideoCaptions(videoId: string, languageCode = 'en'): Pr
 }
 
 /**
- * Get transcript using unofficial YouTube Transcript API
- * This is the BEST METHOD for getting transcripts from most YouTube videos
+ * Get transcript using npm youtube-transcript package
+ * This is the BEST METHOD - much more reliable than custom implementations
  * Works even when official API fails (like for monetized channels)
  */
 export async function getYouTubeTranscriptUnofficial(videoId: string, languageCode = 'en'): Promise<string | null> {
   try {
-    console.log(`📡 Fetching transcript from unofficial YouTube API for: ${videoId}`);
+    console.log(`📡 Fetching transcript using youtube-transcript npm package for: ${videoId}`);
 
-    // This uses the popular unofficial youtube-transcript library approach
-    // We'll make requests to YouTube's player API to get caption data
-    const playerUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    // Use the youtube-transcript npm package - most reliable unofficial method
+    const { YoutubeTranscript } = await import('youtube-transcript');
 
-    // First, get the video page to check for captions
-    const videoPageResponse = await fetch(playerUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
+    const transcript = await YoutubeTranscript.fetchTranscript(videoId, {
+      lang: languageCode,
     });
 
-    if (!videoPageResponse.ok) {
-      console.log('❌ Failed to fetch video page');
+    if (!transcript || transcript.length === 0) {
+      console.log('⚠️ No transcript available via youtube-transcript package');
       return null;
     }
 
-    const pageContent = await videoPageResponse.text();
+    console.log(`✅ Retrieved ${transcript.length} transcript segments`);
 
-    // Check if video has captions
-    const hasCaptions = pageContent.includes('"captionTracks":');
+    // Convert the transcript array to plain text
+    const fullTranscript = transcript
+      .map((item: any) => item.text)
+      .join(' ')
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
 
-    if (!hasCaptions) {
-      console.log('⚠️ Video has no captions available');
+    if (fullTranscript.length < 50) {
+      console.log('⚠️ Transcript too short, likely invalid');
       return null;
     }
 
-    // Extract caption track URL from video page
-    const captionMatch = pageContent.match(/"captionTracks":\s*\[([^\]]*)\]/);
+    console.log(`📝 Final transcript: ${fullTranscript.length} characters`);
+    return fullTranscript;
 
-    if (!captionMatch) {
-      console.log('⚠️ Could not find caption tracks in page');
-      return null;
-    }
+  } catch (error: any) {
+    console.error('❌ youtube-transcript package failed:', error.message);
 
-    try {
-      const captionData = JSON.parse(`[${captionMatch[1]}]`);
-      const englishCaption = captionData.find((track: any) =>
-        track.languageCode === languageCode ||
-        track.languageCode?.startsWith(languageCode) ||
-        track.kind === 'asr' // Auto-generated captions
-      ) || captionData[0]; // Fallback to first available
-
-      if (!englishCaption?.baseUrl) {
-        console.log('⚠️ No suitable caption track found');
-        return null;
+    // Try fallback: OpenAI Whisper (requires OPENAI_API_KEY)
+    if (process.env.OPENAI_API_KEY) {
+      console.log('🔄 Falling back to OpenAI Whisper...');
+      try {
+        const whisperTranscript = await getWhisperTranscript(videoId);
+        if (whisperTranscript) {
+          console.log('✅ OpenAI Whisper succeeded!');
+          return whisperTranscript;
+        }
+      } catch (whisperError) {
+        console.error('❌ OpenAI Whisper also failed:', whisperError);
       }
-
-      console.log(`🎯 Found English caption track: ${englishCaption.languageCode}`);
-
-      // Download the captions
-      const captionUrl = englishCaption.baseUrl;
-      const transcriptResponse = await fetch(captionUrl);
-
-      if (!transcriptResponse.ok) {
-        console.log('❌ Failed to download caption data');
-        return null;
-      }
-
-      const xmlTranscript = await transcriptResponse.text();
-
-      // Convert XML captions to plain text
-      const transcript = xmlTranscript
-        .replace(/<[^>]*>/g, '') // Remove XML tags
-        .replace(/&/g, '&')
-        .replace(/</g, '<')
-        .replace(/>/g, '>')
-        .replace(/"/g, '"')
-        .replace(/&#39;/g, "'")
-        .trim();
-
-      if (transcript.length < 50) { // Very short transcripts are likely errors
-        console.log('⚠️ Transcript too short, likely invalid');
-        return null;
-      }
-
-      console.log(`✅ Extracted transcript: ${transcript.length} characters`);
-      return transcript;
-
-    } catch (parseError) {
-      console.error('❌ Failed to parse caption data:', parseError);
-      return null;
+    } else {
+      console.log('ℹ️ OpenAI Whisper not available (no OPENAI_API_KEY)');
     }
 
+    return null;
+  }
+}
+
+/**
+ * Get transcript using OpenAI Whisper (requires video download)
+ * This is paid but very accurate - costs ~$0.005/minute or free credits
+ */
+async function getWhisperTranscript(videoId: string): Promise<string | null> {
+  try {
+    console.log(`🎙️ Attempting OpenAI Whisper transcription for: ${videoId}`);
+
+    // Note: This would require downloading the video first, then sending to OpenAI
+    // For now, we'll just return null as placeholder since video download is complex
+    console.log('⚠️ Whisper transcription requires video download (not implemented yet)');
+    console.log('💡 Consider implementing video download + Whisper API');
+
+    return null;
   } catch (error) {
-    console.error('❌ Unofficial transcript API failed:', error);
+    console.error('❌ OpenAI Whisper failed:', error);
     return null;
   }
 }
