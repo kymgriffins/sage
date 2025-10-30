@@ -26,8 +26,19 @@ export async function GET(request: NextRequest) {
     console.log(`👤 User: ${user.id}`);
     console.log(`🎬 Video ID: ${videoId}`);
 
-    // Get video transcript
-    const transcript = await getVideoCaptions(videoId);
+    // Get video transcript using primary method (YouTube Captions API)
+    let transcript = await getVideoCaptions(videoId);
+
+    // If YouTube Captions API fails, try alternative: Unofficial YouTube Transcript API
+    if (!transcript) {
+      console.log('🔄 YouTube Captions API failed, trying unofficial Transcript API...');
+      const alternativeTranscript = await getYouTubeTranscriptUnofficial(videoId);
+      if (alternativeTranscript) {
+        console.log('✅ Unofficial Transcript API succeeded!');
+        console.log('🎯 BEST METHOD: YouTube Transcript API (unofficial but reliable)');
+        transcript = alternativeTranscript;
+      }
+    }
 
     console.log(`📝 TRANSCRIPT FOUND FOR ${videoId}:`);
     console.log(`========================================`);

@@ -104,40 +104,137 @@ export async function searchChannels(query: string, maxResults = 10): Promise<Yo
 }
 
 /**
- * Get videos from a specific channel
+ * Get transcript/captions for a video (if available) - Official API method
  */
-export async function getChannelVideos(channelId: string, maxResults = 10): Promise<YouTubeVideo[]> {
+export async function getVideoCaptions(videoId: string, languageCode = 'en'): Promise<string | null> {
   try {
-    const response = await youtube.search.list({
-      part: ['snippet', 'id'],
-      channelId,
-      order: 'date',
-      maxResults,
-      type: ['video'],
+    const response = await youtube.captions.list({
+      part: ['snippet'],
+      videoId: videoId,
     });
 
-    if (!response.data.items) {
-      return [];
+    if (!response.data.items || response.data.items.length === 0) {
+      return null;
     }
 
-    const videoIds = response.data.items
-      .map(item => item.id?.videoId)
-      .filter((id): id is string => Boolean(id));
-    if (videoIds.length === 0) {
-      return [];
+    // Find caption in preferred language or any English variant
+    const caption = response.data.items.find(item =>
+      item.snippet?.language === languageCode ||
+      item.snippet?.language?.startsWith(languageCode)
+    ) || response.data.items[0];
+
+    if (!caption.id) {
+      return null;
     }
 
-    // Get detailed video info
-    const videosResponse = await youtube.videos.list({
-      part: ['snippet', 'statistics', 'contentDetails', 'liveStreamingDetails'],
-      id: videoIds,
-      maxResults: videoIds.length,
+    // Download the caption (NOTE: This requires OAuth2, not API key)
+    const captionResponse = await youtube.captions.download({
+      id: caption.id,
+      tfmt: 'srt', // Get as plain text
     });
 
-    return (videosResponse as any).data.items || [];
+    return captionResponse.data as string;
   } catch (error) {
-    console.error('Error getting channel videos:', error);
-    throw new Error('Failed to get channel videos');
+    console.error('Error getting video captions:', error);
+    return null;
+  }
+}
+
+/**
+ * Get transcript using unofficial YouTube Transcript API
+ * This is the BEST METHOD for getting transcripts from most YouTube videos
+ * Works even when official API fails (like for monetized channels)
+ */
+export async function getYouTubeTranscriptUnofficial(videoId: string, languageCode = 'en'): Promise<string | null> {
+  try {
+    console.log(`📡 Fetching transcript from unofficial YouTube API for: ${videoId}`);
+
+    // This uses the popular unofficial youtube-transcript library approach
+    // We'll make requests to YouTube's player API to get caption data
+    const playerUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+    // First, get the video page to check for captions
+    const videoPageResponse = await fetch(playerUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+
+    if (!videoPageResponse.ok) {
+      console.log('❌ Failed to fetch video page');
+      return null;
+    }
+
+    const pageContent = await videoPageResponse.text();
+
+    // Check if video has captions
+    const hasCaptions = pageContent.includes('"captionTracks":');
+
+    if (!hasCaptions) {
+      console.log('⚠️ Video has no captions available');
+      return null;
+    }
+
+    // Extract caption track URL from video page
+    const captionMatch = pageContent.match(/"captionTracks":\s*\[([^\]]*)\]/);
+
+    if (!captionMatch) {
+      console.log('⚠️ Could not find caption tracks in page');
+      return null;
+    }
+
+    try {
+      const captionData = JSON.parse(`[${captionMatch[1]}]`);
+      const englishCaption = captionData.find((track: any) =>
+        track.languageCode === languageCode ||
+        track.languageCode?.startsWith(languageCode) ||
+        track.kind === 'asr' // Auto-generated captions
+      ) || captionData[0]; // Fallback to first available
+
+      if (!englishCaption?.baseUrl) {
+        console.log('⚠️ No suitable caption track found');
+        return null;
+      }
+
+      console.log(`🎯 Found English caption track: ${englishCaption.languageCode}`);
+
+      // Download the captions
+      const captionUrl = englishCaption.baseUrl;
+      const transcriptResponse = await fetch(captionUrl);
+
+      if (!transcriptResponse.ok) {
+        console.log('❌ Failed to download caption data');
+        return null;
+      }
+
+      const xmlTranscript = await transcriptResponse.text();
+
+      // Convert XML captions to plain text
+      const transcript = xmlTranscript
+        .replace(/<[^>]*>/g, '') // Remove XML tags
+        .replace(/&/g, '&')
+        .replace(/</g, '<')
+        .replace(/>/g, '>')
+        .replace(/"/g, '"')
+        .replace(/&#39;/g, "'")
+        .trim();
+
+      if (transcript.length < 50) { // Very short transcripts are likely errors
+        console.log('⚠️ Transcript too short, likely invalid');
+        return null;
+      }
+
+      console.log(`✅ Extracted transcript: ${transcript.length} characters`);
+      return transcript;
+
+    } catch (parseError) {
+      console.error('❌ Failed to parse caption data:', parseError);
+      return null;
+    }
+
+  } catch (error) {
+    console.error('❌ Unofficial transcript API failed:', error);
+    return null;
   }
 }
 
@@ -169,41 +266,4 @@ export function getVideoType(video: YouTubeVideo): 'live' | 'upload' | 'short' {
   }
 
   return 'upload';
-}
-
-/**
- * Get transcript/captions for a video (if available)
- */
-export async function getVideoCaptions(videoId: string, languageCode = 'en'): Promise<string | null> {
-  try {
-    const response = await youtube.captions.list({
-      part: ['snippet'],
-      videoId,
-    });
-
-    if (!response.data.items || response.data.items.length === 0) {
-      return null;
-    }
-
-    // Find caption in preferred language or any English variant
-    const caption = response.data.items.find(item =>
-      item.snippet?.language === languageCode ||
-      item.snippet?.language?.startsWith(languageCode)
-    ) || response.data.items[0];
-
-    if (!caption.id) {
-      return null;
-    }
-
-    // Download the caption
-    const captionResponse = await youtube.captions.download({
-      id: caption.id,
-      tfmt: 'srt', // Get as plain text
-    });
-
-    return captionResponse.data as string;
-  } catch (error) {
-    console.error('Error getting video captions:', error);
-    return null;
-  }
 }
