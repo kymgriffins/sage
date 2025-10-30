@@ -2,12 +2,9 @@ import type { Metadata } from "next";
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackClientApp } from "../stack/client";
 import { ThemeProvider } from "@/components/theme-provider";
-import { StructuredData } from "@/components/structured-data";
-import ErrorBoundary from "@/components/error-boundary";
 import { Toaster } from "@/components/ui/toaster";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Navigation } from "@/components/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,9 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SAGE - AI-Powered Trading Stream Analysis",
-  description: "Extract trading insights from YouTube streams with AI. Get strategy analysis, trade detection, and performance metrics in seconds.",
-  keywords: ["trading analysis", "AI trading", "YouTube stream analysis", "trading insights", "stock analysis", "crypto trading"],
+  title: "SAGE - AI-Powered Trading Intelligence",
+  description: "No more hype, no more BS. Compare trading educators head-to-head with verifiable data. See who's actually winning in the markets.",
+  keywords: ["trading analysis", "trader rankings", "AI trading", "trading insights", "stock analysis", "crypto trading"],
   authors: [{ name: "SAGE AI" }],
   creator: "SAGE AI",
   publisher: "SAGE AI",
@@ -39,22 +36,22 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://sage-ai.com',
-    title: 'SAGE - AI-Powered Trading Stream Analysis',
-    description: 'Extract trading insights from YouTube streams with AI. Get strategy analysis, trade detection, and performance metrics in seconds.',
+    title: 'SAGE - Rank the Traders',
+    description: 'Compare trading educators head-to-head with verifiable data. See who\'s actually winning in the markets.',
     siteName: 'SAGE AI',
     images: [
       {
         url: '/og-image.jpg', // Add your OG image
         width: 1200,
         height: 630,
-        alt: 'SAGE - AI Trading Analysis',
+        alt: 'SAGE - Rank the Traders',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SAGE - AI-Powered Trading Stream Analysis',
-    description: 'Extract trading insights from YouTube streams with AI.',
+    title: 'SAGE - Rank the Traders',
+    description: 'No more hype, no more BS. Compare trading educators with real data.',
     creator: '@sage_ai',
     images: ['/og-image.jpg'], // Add your Twitter image
   },
@@ -77,6 +74,7 @@ export const metadata: Metadata = {
   },
 };
 
+// Root layout - only basic providers, no app-specific components
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -123,18 +121,9 @@ export default function RootLayout({
         >
           <StackProvider app={stackClientApp}>
             <StackTheme>
-              <Navigation />
-              <div className="pt-16"> {/* Account for fixed navigation height */}
-                <ErrorBoundary>
-                  {children}
-                </ErrorBoundary>
-
-                {/* Structured Data for SEO */}
-                <StructuredData type="software" />
-
-                {/* Toast Notifications */}
-                <Toaster />
-              </div>
+              {/* Toast Notifications */}
+              <Toaster />
+              {children}
             </StackTheme>
           </StackProvider>
         </ThemeProvider>
