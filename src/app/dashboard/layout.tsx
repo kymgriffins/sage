@@ -1,6 +1,7 @@
 import { stackServerApp } from "@/stack/server";
 import { redirect } from "next/navigation";
 import Sidebar from "./sidebar";
+import SidebarLayoutAdjuster from "./sidebar-layout-adjuster";
 
 export default async function DashboardLayout({
   children,
@@ -23,10 +24,10 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <Sidebar user={userData} />
-      {/* Main Content */}
-      <div className="ml-64 pt-16">
+      {/* Client component to handle dynamic margin adjustment */}
+      <SidebarLayoutAdjuster>
         {children}
-      </div>
+      </SidebarLayoutAdjuster>
     </div>
   );
 }
