@@ -25,7 +25,7 @@ const sidebarItems = [
   },
   {
     href: '/market-analysis',
-    label: 'Market Analysis',
+    label: 'Stock Analysis',
     icon: TrendingUp,
     badge: null
   },

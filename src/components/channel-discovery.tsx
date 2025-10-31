@@ -87,15 +87,15 @@ export function ChannelDiscovery() {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error('Search failed:', data.error);
+        console.error('Search failed:', data?.error || 'Unknown error');
 
-        if (data.details && data.details.includes('YouTube API key')) {
+        if (data?.details && data.details.includes('YouTube API key')) {
           toast({
             title: "YouTube API not configured",
             description: "Configure YOUTUBE_API_KEY in your environment variables or switch to Mock mode",
             variant: "destructive"
           });
-        } else if (data.error === 'Search query is required') {
+        } else if (data?.error === 'Search query is required') {
           toast({
             title: "Search query required",
             description: "Please enter a search term",
@@ -104,7 +104,7 @@ export function ChannelDiscovery() {
         } else {
           toast({
             title: "Search failed",
-            description: data.error || "Unable to search channels. Please try again.",
+            description: data?.error || "Unable to search channels. Please try again.",
             variant: "destructive"
           });
         }
@@ -214,7 +214,13 @@ export function ChannelDiscovery() {
         body,
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('Failed to parse subscription API response:', parseError);
+        data = {};
+      }
 
       if (!response.ok) {
         console.error('Subscription API error:', data);
@@ -238,7 +244,7 @@ export function ChannelDiscovery() {
           return;
         }
 
-        throw new Error(data.error || 'Subscription request failed');
+        throw new Error(data?.error || 'Subscription request failed');
       }
 
       // Update local state on success

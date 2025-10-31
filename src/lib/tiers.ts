@@ -16,19 +16,16 @@ export const TIER_LIMITS = {
   }
 }
 
-// Rate limiting configuration for market data and live data
+// Rate limiting configuration for stock market data
 export const MARKET_DATA_LIMITS = {
   free: {
-    'market-data': 5, // 5 requests per hour
-    'live-data': 2,   // 2 live data requests per hour
+    'market-data': 50, // 50 stock analysis requests per hour (increased for development)
   },
   pro: {
-    'market-data': 50,  // 50 requests per hour
-    'live-data': 20,    // 20 live data requests per hour
+    'market-data': 100,  // 100 stock analysis requests per hour
   },
   enterprise: {
-    'market-data': 500,  // 500 requests per hour
-    'live-data': 200,    // 200 live data requests per hour
+    'market-data': 1000,  // 1000 stock analysis requests per hour
   }
 } as const;
 
@@ -75,7 +72,7 @@ export class RateLimiter {
 
   static async checkLimit(
     userId: string,
-    endpoint: 'market-data' | 'live-data',
+    endpoint: 'market-data',
     tier: 'free' | 'pro' | 'enterprise' = 'free'
   ): Promise<{
     allowed: boolean;
@@ -121,7 +118,7 @@ export class RateLimiter {
         remaining: 0,
         limit,
         resetTime: entry.resetTime,
-        message: `Rate limit exceeded. ${tier} tier allows ${limit} requests per hour. Upgrade to Pro for higher limits.`,
+        message: `Rate limit exceeded. ${tier} tier allows ${limit} stock analysis requests per hour. Upgrade to Pro for higher limits.`,
         retryAfter,
       };
     }
@@ -136,7 +133,7 @@ export class RateLimiter {
 
   static async recordRequest(
     userId: string,
-    endpoint: 'market-data' | 'live-data',
+    endpoint: 'market-data',
     tier: 'free' | 'pro' | 'enterprise' = 'free'
   ): Promise<void> {
     const key = `${userId}:${endpoint}:${tier}`;

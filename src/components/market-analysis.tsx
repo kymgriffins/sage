@@ -69,11 +69,17 @@ export function MarketAnalysis() {
 
     try {
       const response = await fetch(`/api/market-data?symbol=${ticker}&userId=user123`);
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('Failed to parse market data API response:', parseError);
+        throw new Error('Invalid response from server. Please try again.');
+      }
 
       if (!response.ok) {
         // Handle rate limiting specially
-        if (response.status === 429 && data.error?.includes('Rate limit exceeded')) {
+        if (response.status === 429 && data?.error?.includes('Rate limit exceeded')) {
           setRateLimited(true);
           const retryAfter = data.retryAfter || 3600; // Default to 1 hour
           setRetryAfter(retryAfter);
@@ -84,9 +90,9 @@ export function MarketAnalysis() {
             setRetryAfter(null);
           }, retryAfter * 1000);
 
-          throw new Error(`Market data requests exceeded (5/hour limit). Upgrade to Pro for unlimited access or try again in ${Math.floor(retryAfter / 60)} minutes.`);
+          throw new Error(`Market data requests exceeded (${data.rateLimit?.limit || 50}/hour limit). Upgrade to Pro for higher limits or try again in ${Math.floor(retryAfter / 60)} minutes.`);
         }
-        throw new Error(data.error || 'Failed to fetch stock data');
+        throw new Error(data?.error || 'Failed to fetch stock data');
       }
 
       setStockData(data.data);

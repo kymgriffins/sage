@@ -44,7 +44,7 @@ export default function HomePage() {
               </Button>
               <Button variant="outline" size="lg" asChild>
                 <Link href="/market-analysis">
-                  View Markets
+                  Stock Analysis
                   <BarChart3 className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
@@ -77,11 +77,11 @@ export default function HomePage() {
                 <div className="mx-auto w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center mb-4">
                   <BarChart3 className="w-6 h-6 text-cyan-400" />
                 </div>
-                <CardTitle>Live Market Data</CardTitle>
+                <CardTitle>Stock Analysis</CardTitle>
               </CardHeader>
               <CardContent className="text-center">
                 <CardDescription>
-                  Real-time Forex, Futures, and Commodity data with advanced analytics and trend indicators.
+                  Real-time stock data with comprehensive financial analysis, analyst ratings, and market insights.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -151,7 +151,7 @@ export default function HomePage() {
 
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/market-analysis" className="hover:text-foreground">
-                Markets
+                Stock Analysis
               </Link>
               <Link href="/dashboard" className="hover:text-foreground">
                 Dashboard

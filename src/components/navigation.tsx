@@ -32,7 +32,7 @@ export function Navigation() {
     },
     {
       href: '/market-analysis',
-      label: 'Markets',
+      label: 'Stock Analysis',
       icon: BarChart3,
       description: 'Live market data & analysis',
       badge: 'BETA'
