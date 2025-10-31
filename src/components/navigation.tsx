@@ -5,8 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AuthButton } from "@/components/auth-button";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { AuthThemeToggle } from "./auth-theme-toggle";
 import {
   Home,
   Package,
@@ -30,6 +29,13 @@ export function Navigation() {
       label: 'Home',
       icon: Home,
       description: 'Landing page'
+    },
+    {
+      href: '/market-analysis',
+      label: 'Markets',
+      icon: BarChart3,
+      description: 'Live market data & analysis',
+      badge: 'BETA'
     },
     {
       href: '/dashboard',
@@ -101,14 +107,7 @@ export function Navigation() {
 
         {/* Right Side - User Account & Controls */}
         <div className="flex items-center gap-2 ml-auto">
-          <Link href="/demo" className="text-muted-foreground hover:text-foreground transition-colors text-sm hidden sm:inline">
-            Demo
-          </Link>
-          <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-            Pricing →
-          </Link>
-          <ThemeToggle />
-          <AuthButton />
+          <AuthThemeToggle />
         </div>
       </div>
     </nav>

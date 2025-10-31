@@ -1,8 +1,8 @@
 import { stackServerApp } from "@/stack/server";
 import { redirect } from "next/navigation";
-import Sidebar from "./sidebar";
+import Sidebar from "../dashboard/sidebar";
 
-export default async function DashboardLayout({
+export default async function MarketAnalysisLayout({
   children,
 }: {
   children: React.ReactNode;
