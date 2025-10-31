@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+import { Navigation } from "@/components/navigation";
 
 export default function HomePage() {
   // Scroll reveal hooks for different sections
@@ -16,8 +17,10 @@ export default function HomePage() {
   const pricingReveal = useScrollReveal({ direction: 'up', delay: 0.2, threshold: 0.2 })
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Animated gradient orb background */}
+    <>
+      <Navigation />
+      <main className="min-h-screen bg-background pt-16">
+        {/* Animated gradient orb background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500/20 dark:bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 dark:bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
@@ -49,7 +52,7 @@ export default function HomePage() {
           {/* CTA */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
             <Link
-              href="/analyze"
+              href="/dashboard"
               className="inline-flex items-center px-8 py-4 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-semibold text-lg transition-colors duration-200"
             >
               Start Free Analysis
@@ -338,15 +341,15 @@ export default function HomePage() {
 
             {/* CTA below carousel */}
             <div className="mt-20">
-              <Link
-                href="/get-started"
-                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-2xl font-semibold text-lg shadow-2xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-500 hover:scale-105"
-              >
-                🚀 Start Your Analysis Journey
-                <svg className="w-5 h-5 ml-3 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-2xl font-semibold text-lg shadow-2xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-500 hover:scale-105"
+            >
+              🚀 Start Your Analysis Journey
+              <svg className="w-5 h-5 ml-3 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
             </div>
           </div>
         </div>
@@ -452,7 +455,7 @@ export default function HomePage() {
                   </li>
                 </ul>
 
-                <Link href="/analyze" className="inline-flex items-center px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-medium text-sm transition-colors duration-200 mt-6">
+                <Link href="/dashboard" className="inline-flex items-center px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-medium text-sm transition-colors duration-200 mt-6">
                   Get Started Free
                 </Link>
               </div>
@@ -617,7 +620,7 @@ export default function HomePage() {
             </p>
 
             <Link
-              href="/analyze"
+              href="/dashboard"
               className="inline-flex items-center px-10 py-5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-semibold text-lg transition-colors duration-200 shadow-lg"
             >
               Get Started Free
@@ -644,5 +647,6 @@ export default function HomePage() {
         </footer>
       </div>
     </main>
+    </>
   )
 }
