@@ -221,13 +221,22 @@ export default function Sidebar({ user }: SidebarProps) {
           )}
 
           {/* Sidebar Footer */}
-          <div className="p-2 border-t border-white/10 space-y-2">
+          <div className="p-4 border-t border-white/10 space-y-3">
             {!isCollapsed && (
-              <div className="flex items-center justify-between mb-2">
+              <div className="space-y-3">
                 <div className="text-xs text-muted-foreground">
-                  <p>Logged in as:</p>
-                  <p className="font-medium text-foreground truncate">{user.displayName || user.primaryEmail}</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Logged in as:</p>
+                  <p className="font-medium text-foreground truncate text-sm">{user.displayName || user.primaryEmail}</p>
                 </div>
+
+                <div className="flex items-center justify-center">
+                  <ThemeToggle />
+                </div>
+              </div>
+            )}
+
+            {isCollapsed && (
+              <div className="flex justify-center mb-2">
                 <ThemeToggle />
               </div>
             )}
@@ -235,7 +244,7 @@ export default function Sidebar({ user }: SidebarProps) {
             <Button
               variant="outline"
               size="sm"
-              className={`w-full justify-start gap-2 text-xs h-8 hover:bg-destructive/10 hover:border-destructive/20 ${
+              className={`w-full justify-start gap-2 text-xs h-9 hover:bg-destructive/10 hover:border-destructive/20 hover:text-destructive transition-colors ${
                 isCollapsed ? 'px-2' : ''
               }`}
               onClick={() => {
@@ -244,7 +253,7 @@ export default function Sidebar({ user }: SidebarProps) {
                 user.signOut();
               }}
             >
-              <LogOut className="w-3 h-3" />
+              <LogOut className="w-4 h-4" />
               {!isCollapsed && <span>Sign Out</span>}
             </Button>
           </div>

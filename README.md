@@ -1,36 +1,211 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎯 YouTube Sage - Trading Education Analysis Platform
 
-## Getting Started
+**Transforming trading education into a meritocratic ranking system where traders are judged by actual market performance, not hype.**
 
-First, run the development server:
+YouTube Sage provides data-driven comparison of trading educators based on real trading results rather than marketing claims. It's the ultimate competitive platform for trading education streamers.
+
+## ✨ Features
+
+- 🔐 **Authentication**: Secure user management with Stack
+- 📺 **YouTube Integration**: Channel search, subscription, and video tracking
+- 📊 **Market Data**: Real-time stock analysis with multiple providers
+- 🎨 **Modern UI**: Responsive design with dark theme support
+- 🗄️ **Database**: Comprehensive PostgreSQL schema with Drizzle ORM
+- ⚡ **API**: RESTful endpoints with proper error handling
+- 📱 **Mobile-First**: Fully responsive across all devices
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- PostgreSQL database (Neon recommended)
+- YouTube Data API v3 key
+- Market data API keys (optional)
+
+### Installation
+
+1. **Clone and install dependencies:**
+   ```bash
+   git clone <repository-url>
+   cd sage
+   npm install
+   ```
+
+2. **Set up environment variables:**
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your API keys
+   ```
+
+3. **Set up the database:**
+   ```bash
+   # Generate and push database schema
+   npm run db:generate
+   npm run db:push
+   ```
+
+4. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open [http://localhost:3000](http://localhost:3000)**
+
+## 🔧 Environment Variables
+
+Copy `.env.example` to `.env.local` and configure:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Required
+DATABASE_URL="postgresql://..."
+YOUTUBE_API_KEY="AIzaSy..."
+
+# Optional (enhance functionality)
+OPENAI_API_KEY="sk-..."
+ALPHA_VANTAGE_API_KEY="..."
+POLYGON_API_KEY="..."
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📁 Project Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+sage/
+├── src/
+│   ├── app/                 # Next.js app router
+│   │   ├── api/            # API routes
+│   │   ├── dashboard/      # Dashboard pages
+│   │   └── layout.tsx      # Root layout
+│   ├── components/         # Reusable UI components
+│   ├── lib/               # Utilities and configurations
+│   └── types/             # TypeScript definitions
+├── drizzle/               # Database migrations
+├── public/               # Static assets
+└── APP_FINALIZATION_CHECKLIST.md  # Launch preparation guide
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🗄️ Database Schema
 
-## Learn More
+The app uses a comprehensive PostgreSQL schema with:
 
-To learn more about Next.js, take a look at the following resources:
+- **Users & Subscriptions**: Tier-based access control
+- **Channels & Streams**: YouTube content tracking
+- **Analytics**: Performance insights and metrics
+- **Processing Queue**: Background job management
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Run `npm run db:push` to deploy the schema.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎯 Core Functionality
 
-## Deploy on Vercel
+### User Management
+- Registration and authentication via Stack
+- Subscription tiers (Free/Pro/Enterprise)
+- Profile management
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Channel Tracking
+- Search YouTube trading channels
+- Subscribe to channels for tracking
+- Automatic video discovery
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Market Analysis
+- Real-time stock data integration
+- Multiple data providers
+- Technical analysis tools
+
+### Dashboard
+- Overview of subscribed channels
+- Analytics and insights
+- Settings management
+
+## 🧪 Testing
+
+```bash
+# Run build to check for errors
+npm run build
+
+# Database operations
+npm run db:generate  # Generate migrations
+npm run db:push      # Push schema changes
+npm run db:migrate   # Run migrations
+```
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. **Connect your repository to Vercel**
+2. **Set environment variables in Vercel dashboard**
+3. **Deploy automatically on push**
+
+### Manual Deployment
+
+```bash
+# Build for production
+npm run build
+
+# Start production server
+npm start
+```
+
+## 📚 API Reference
+
+### Authentication Endpoints
+- `POST /handler/[...stack]` - Stack authentication
+
+### Channel Management
+- `GET /api/channels/search` - Search YouTube channels
+- `POST /api/channels/subscribe` - Subscribe to channel
+- `GET /api/user/channels` - Get user subscriptions
+
+### Market Data
+- `GET /api/market-data` - Fetch market data
+
+### User Analytics
+- `GET /api/user/analytics` - User analytics
+- `GET /api/user/recent-streams` - Recent streams
+
+## 🛠️ Development
+
+### Available Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run db:generate  # Generate database migrations
+npm run db:push      # Push database schema
+npm run db:migrate   # Run database migrations
+```
+
+### Tech Stack
+
+- **Frontend**: Next.js 16, React 19, TypeScript
+- **Styling**: Tailwind CSS, shadcn/ui
+- **Database**: PostgreSQL, Drizzle ORM
+- **Authentication**: Stack
+- **APIs**: YouTube Data API, Market Data APIs
+- **Deployment**: Vercel
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and build
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 📞 Support
+
+For questions or issues:
+- Check the [APP_FINALIZATION_CHECKLIST.md](./APP_FINALIZATION_CHECKLIST.md) for setup help
+- Review the [ROADMAP.md](./ROADMAP.md) for planned features
+- Open an issue for bugs or feature requests
+
+---
+
+**🎉 Ready to revolutionize trading education analysis!**
